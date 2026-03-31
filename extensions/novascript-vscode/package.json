@@ -1,0 +1,91 @@
+{
+  "name": "novascript-lang",
+  "displayName": "NovaScript - NovaStar Engine",
+  "description": "Language support for NovaScript (.nova) - the scripting language for NovaStar Engine. Includes syntax highlighting, snippets, auto-completion, and hover documentation.",
+  "version": "0.2.5",
+  "publisher": "JustyyDev",
+  "author": "JustyyDev",
+  "license": "MIT",
+  "icon": "icons/novascript-icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JustyyDev/NovaStar-Engine"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Game Development"
+  ],
+  "keywords": [
+    "novascript",
+    "novastar",
+    "game engine",
+    "game development",
+    "scripting language",
+    "3D",
+    "2D"
+  ],
+  "activationEvents": [
+    "onLanguage:novascript"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "novascript",
+        "aliases": ["NovaScript", "novascript", "nova"],
+        "extensions": [".nova", ".novascript", ".ns"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/nova-file-light.svg",
+          "dark": "./icons/nova-file-dark.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "novascript",
+        "scopeName": "source.novascript",
+        "path": "./syntaxes/novascript.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "novascript",
+        "path": "./snippets/novascript.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[novascript]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.wordWrap": "on",
+        "editor.autoClosingBrackets": "always",
+        "editor.autoClosingQuotes": "always",
+        "editor.formatOnType": true,
+        "editor.suggest.showKeywords": true
+      }
+    },
+    "iconThemes": [],
+    "commands": [
+      {
+        "command": "novascript.runFile",
+        "title": "NovaScript: Run Current File"
+      },
+      {
+        "command": "novascript.openDocs",
+        "title": "NovaScript: Open Documentation"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "novascript.runFile",
+        "key": "f5",
+        "when": "editorLangId == novascript"
+      }
+    ]
+  }
+}
