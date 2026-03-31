@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaStar Editor v0.3</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; background: #0a0c10; color: #d4d8e4; font-family: 'Nunito', sans-serif; font-size: 13px; }
+    :root {
+      --bg-deep: #0a0c10; --bg-base: #12151c; --bg-surface: #181c26; --bg-raised: #1e2330;
+      --bg-hover: #242a38; --border: #2a3040; --border-focus: #4ee6a0;
+      --text: #d4d8e4; --text-dim: #7b84a0; --text-muted: #4a5170;
+      --accent: #4ee6a0; --accent-dim: rgba(78,230,160,0.12); --accent-glow: rgba(78,230,160,0.25);
+      --blue: #4da8ff; --blue-dim: rgba(77,168,255,0.12);
+      --purple: #a86bff; --purple-dim: rgba(168,107,255,0.12);
+      --orange: #ffa64d; --orange-dim: rgba(255,166,77,0.12);
+      --red: #ff5568; --red-dim: rgba(255,85,104,0.12);
+      --yellow: #ffe066; --yellow-dim: rgba(255,224,102,0.12);
+      --radius: 8px; --radius-sm: 5px; --radius-lg: 12px;
+    }
+
+    /* ===== WELCOME SCREEN ===== */
+    #welcome-screen {
+      position: fixed; inset: 0; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: var(--bg-deep); transition: opacity 0.5s, transform 0.5s; padding: 40px;
+    }
+    #welcome-screen::before {
+      content: ''; position: absolute; inset: 0; 
+      background: radial-gradient(ellipse at 30% 20%, rgba(78,230,160,0.06) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 80%, rgba(77,168,255,0.04) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    #welcome-screen.hidden { opacity: 0; transform: scale(1.02); pointer-events: none; }
+    .welcome-logo {
+      font-family: 'Fredoka One', sans-serif; font-size: 48px; position: relative; z-index: 1;
+      background: linear-gradient(135deg, #4ee6a0 0%, #4da8ff 50%, #a86bff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 40px rgba(78,230,160,0.2)); margin-bottom: 6px;
+    }
+    .welcome-version {
+      display: inline-flex; align-items: center; gap: 8px; background: var(--accent-dim);
+      border: 1px solid rgba(78,230,160,0.2); padding: 4px 14px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 8px;
+    }
+    .welcome-version .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .welcome-sub { color: var(--text-dim); font-size: 14px; margin-bottom: 52px; letter-spacing: 0.5px; }
+    .welcome-tabs { display: flex; gap: 2px; background: var(--bg-surface); border-radius: var(--radius); padding: 3px; margin-bottom: 24px; }
+    .welcome-tab {
+      padding: 8px 20px; border-radius: 6px; font-size: 12px; font-weight: 700;
+      color: var(--text-dim); cursor: pointer; transition: all 0.15s; border: none; background: none; font-family: inherit;
+    }
+    .welcome-tab:hover { color: var(--text); }
+    .welcome-tab.active { background: var(--bg-raised); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .template-grid { display: grid; grid-template-columns: repeat(3, 210px); gap: 12px; margin-bottom: 40px; }
+    .template-card {
+      background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 22px 18px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center;
+      gap: 10px; text-align: center; position: relative; overflow: hidden;
+    }
+    .template-card::after {
+      content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.2s;
+      background: linear-gradient(180deg, transparent 50%, rgba(78,230,160,0.05) 100%);
+    }
+    .template-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
+    .template-card:hover::after { opacity: 1; }
+    .template-card svg { width: 44px; height: 44px; position: relative; z-index: 1; }
+    .template-card .tc-name { font-weight: 800; font-size: 14px; color: var(--text); z-index: 1; }
+    .template-card .tc-desc { font-size: 11px; color: var(--text-dim); line-height: 1.5; z-index: 1; }
+    .template-card.blank { border-style: dashed; }
+    .template-card.blank:hover { border-color: var(--blue); }
+    .recent-list { width: 100%; max-width: 650px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 40px; display: none; }
+    .recent-list.visible { display: flex; }
+    .recent-item {
+      display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: var(--radius);
+      background: var(--bg-surface); border: 1px solid var(--border); cursor: pointer; transition: all 0.15s;
+    }
+    .recent-item:hover { border-color: var(--blue); background: var(--bg-raised); }
+    .recent-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--blue-dim); display: flex; align-items: center; justify-content: center; }
+    .recent-icon svg { width: 18px; height: 18px; color: var(--blue); }
+    .recent-info { flex: 1; }
+    .recent-name { font-weight: 700; font-size: 13px; }
+    .recent-meta { font-size: 11px; color: var(--text-dim); }
+    .welcome-footer { color: var(--text-muted); font-size: 11px; letter-spacing: 0.5px; }
+
+    /* ===== EDITOR ROOT ===== */
+    #editor-root { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    /* ===== TOOLBAR ===== */
+    #toolbar {
+      display: flex; justify-content: space-between; align-items: center; height: 44px; min-height: 44px;
+      background: var(--bg-surface); border-bottom: 1px solid var(--border); padding: 0 12px; z-index: 100; flex-shrink: 0;
+    }
+    .toolbar-group { display: flex; align-items: center; gap: 2px; }
+    .logo {
+      font-family: 'Fredoka One', sans-serif; font-size: 15px; color: var(--accent);
+      margin-right: 16px; display: flex; align-items: center; gap: 7px; user-select: none;
+    }
+    .logo svg { width: 18px; height: 18px; }
+    .tool-btn {
+      display: flex; align-items: center; justify-content: center; gap: 5px; height: 30px; min-width: 30px;
+      padding: 0 6px; background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm);
+      color: var(--text-dim); cursor: pointer; transition: all 0.12s; font-family: inherit; font-size: 11px; font-weight: 700;
+    }
+    .tool-btn:hover { background: var(--bg-hover); border-color: var(--border); color: var(--text); }
+    .tool-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+    .tool-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .tool-btn .shortcut { font-size: 9px; opacity: 0.5; font-family: 'JetBrains Mono', monospace; }
+    .separator { width: 1px; height: 22px; background: var(--border); margin: 0 8px; }
+    .play-btn { background: var(--accent-dim); border-color: rgba(78,230,160,0.2); color: var(--accent); padding: 0 14px; }
+    .play-btn:hover { background: var(--accent-glow); }
+    .stop-btn { background: var(--red-dim); border-color: rgba(255,85,104,0.2); color: var(--red); padding: 0 14px; }
+
+    /* ===== EDITOR BODY ===== */
+    #editor-body { flex: 1; display: grid; grid-template-columns: 230px 1fr 280px; grid-template-rows: 1fr auto; overflow: hidden; min-height: 0; }
+
+    /* ===== PANELS ===== */
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between; height: 36px; min-height: 36px;
+      padding: 0 14px; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--text-dim); background: var(--bg-raised); border-bottom: 1px solid var(--border); user-select: none; flex-shrink: 0;
+    }
+    .panel-header-actions { display: flex; gap: 2px; }
+    .panel-header-btn {
+      width: 22px; height: 22px; border-radius: 4px; background: none; border: none;
+      color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s;
+    }
+    .panel-header-btn:hover { color: var(--text); background: var(--bg-hover); }
+    .panel-header-btn svg { width: 12px; height: 12px; }
+
+    /* ===== LEFT PANEL: HIERARCHY + PREFABS ===== */
+    #left-panel { grid-column: 1; grid-row: 1 / 3; display: flex; flex-direction: column; background: var(--bg-surface); border-right: 1px solid var(--border); overflow: hidden; }
+    .left-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .left-tab {
+      flex: 1; padding: 9px 0; text-align: center; font-size: 11px; font-weight: 700;
+      color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s;
+      background: none; border-top: none; border-left: none; border-right: none; font-family: inherit;
+    }
+    .left-tab:hover { color: var(--text); background: var(--bg-hover); }
+    .left-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .left-tab-content { flex: 1; overflow-y: auto; display: none; }
+    .left-tab-content.active { display: flex; flex-direction: column; }
+
+    /* Hierarchy */
+    #hierarchy-tree { flex: 1; overflow-y: auto; padding: 6px 8px; }
+    .h-item {
+      display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: var(--radius-sm);
+      font-size: 12px; cursor: pointer; transition: all 0.1s; user-select: none; position: relative;
+    }
+    .h-item:hover { background: var(--bg-hover); }
+    .h-item.selected { background: var(--accent-dim); color: var(--accent); }
+    .h-item .h-icon { width: 16px; height: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .h-item .h-icon svg { width: 14px; height: 14px; }
+    .h-item .h-vis { margin-left: auto; width: 16px; height: 16px; opacity: 0; transition: opacity 0.1s; color: var(--text-muted); cursor: pointer; }
+    .h-item:hover .h-vis { opacity: 0.6; }
+    .h-item .h-vis:hover { opacity: 1; color: var(--text); }
+    .h-item.prefab-instance { border-left: 2px solid var(--purple); padding-left: 8px; }
+    .panel-footer { padding: 8px 10px; border-top: 1px solid var(--border); background: var(--bg-raised); flex-shrink: 0; }
+    .footer-btn {
+      display: block; width: 100%; padding: 7px 10px; border-radius: var(--radius-sm); background: var(--bg-deep);
+      border: 1px solid var(--border); color: var(--accent); font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; font-family: inherit; text-align: center;
+    }
+    .footer-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
+
+    /* Prefab panel */
+    #prefab-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .prefab-card {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius);
+      background: var(--bg-deep); border: 1px solid var(--border); margin-bottom: 6px;
+      cursor: grab; transition: all 0.15s; position: relative;
+    }
+    .prefab-card:hover { border-color: var(--purple); background: var(--bg-raised); }
+    .prefab-card:active { cursor: grabbing; }
+    .prefab-thumb {
+      width: 36px; height: 36px; border-radius: 6px; background: var(--purple-dim);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .prefab-thumb svg { width: 20px; height: 20px; color: var(--purple); }
+    .prefab-info { flex: 1; min-width: 0; }
+    .prefab-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prefab-meta { font-size: 10px; color: var(--text-dim); }
+    .prefab-badge {
+      position: absolute; top: 6px; right: 8px; font-size: 9px; font-weight: 800; padding: 2px 6px;
+      border-radius: 4px; background: var(--purple-dim); color: var(--purple); letter-spacing: 0.5px;
+    }
+
+    /* ===== VIEWPORT ===== */
+    #viewport { grid-column: 2; grid-row: 1; position: relative; overflow: hidden; background: var(--bg-deep); min-width: 0; min-height: 0; }
+    #editor-canvas { display: block; width: 100% !important; height: 100% !important; position: absolute; inset: 0; }
+    #viewport-overlay { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 5; }
+    .viewport-pill {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500;
+      color: var(--text-dim); background: rgba(10,12,16,0.75); backdrop-filter: blur(8px);
+      padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06);
+    }
+    #viewport-tools { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; z-index: 5; }
+    .vp-tool-btn {
+      padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700;
+      background: rgba(10,12,16,0.8); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-dim); cursor: pointer; font-family: inherit; transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+    }
+    .vp-tool-btn:hover { background: var(--bg-hover); border-color: var(--border); color: var(--text); }
+    .vp-tool-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+    .vp-tool-btn svg { width: 14px; height: 14px; }
+    /* Grid toggle indicator */
+    .grid-indicator { position: absolute; bottom: 12px; right: 12px; font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* ===== RIGHT PANEL: INSPECTOR ===== */
+    #right-panel { grid-column: 3; grid-row: 1 / 3; display: flex; flex-direction: column; background: var(--bg-surface); border-left: 1px solid var(--border); overflow: hidden; }
+    .right-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .right-tab {
+      flex: 1; padding: 9px 0; text-align: center; font-size: 11px; font-weight: 700;
+      color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s;
+      background: none; border-top: none; border-left: none; border-right: none; font-family: inherit;
+    }
+    .right-tab:hover { color: var(--text); background: var(--bg-hover); }
+    .right-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .right-tab-content { flex: 1; overflow-y: auto; display: none; padding: 14px; }
+    .right-tab-content.active { display: block; }
+    .hint { color: var(--text-dim); font-size: 12px; font-style: italic; text-align: center; padding: 30px 14px; line-height: 1.6; }
+
+    /* Inspector sections */
+    .insp-section { margin-bottom: 18px; }
+    .insp-title {
+      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--text-dim); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .insp-title svg { width: 12px; height: 12px; }
+    .insp-row { display: flex; align-items: center; margin-bottom: 5px; gap: 6px; }
+    .insp-row label {
+      font-size: 11px; font-weight: 700; color: var(--text-dim); width: 22px; text-align: right; flex-shrink: 0;
+    }
+    .insp-input {
+      flex: 1; min-width: 0; padding: 5px 9px; border-radius: var(--radius-sm); background: var(--bg-deep);
+      border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; outline: none; transition: border-color 0.15s;
+    }
+    .insp-input:focus { border-color: var(--border-focus); box-shadow: 0 0 0 2px var(--accent-dim); }
+    .insp-input.x:focus { border-color: #ff5568; box-shadow: 0 0 0 2px var(--red-dim); }
+    .insp-input.y:focus { border-color: #4ee6a0; box-shadow: 0 0 0 2px var(--accent-dim); }
+    .insp-input.z:focus { border-color: #4da8ff; box-shadow: 0 0 0 2px var(--blue-dim); }
+    .insp-select {
+      flex: 1; min-width: 0; padding: 5px 9px; border-radius: var(--radius-sm); background: var(--bg-deep);
+      border: 1px solid var(--border); color: var(--text); font-family: 'Nunito', sans-serif; font-size: 11px;
+      outline: none; cursor: pointer;
+    }
+    .insp-checkbox { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+    .insp-checkbox input { accent-color: var(--accent); }
+    .insp-checkbox span { font-size: 12px; color: var(--text-dim); }
+    .insp-btn {
+      width: 100%; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: all 0.15s; border: 1px solid var(--border); margin-top: 6px;
+    }
+    .insp-btn.primary { background: var(--accent-dim); color: var(--accent); border-color: rgba(78,230,160,0.2); }
+    .insp-btn.primary:hover { background: var(--accent-glow); border-color: var(--accent); }
+    .insp-btn.danger { background: var(--red-dim); color: var(--red); border-color: rgba(255,85,104,0.15); }
+    .insp-btn.danger:hover { background: rgba(255,85,104,0.2); border-color: var(--red); }
+
+    /* Component chips */
+    .component-list { display: flex; flex-direction: column; gap: 4px; }
+    .component-chip {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm);
+      background: var(--bg-deep); border: 1px solid var(--border); font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.12s;
+    }
+    .component-chip:hover { border-color: var(--blue); }
+    .component-chip.expanded { border-color: var(--blue); background: var(--bg-raised); }
+    .component-chip svg { width: 14px; height: 14px; color: var(--blue); flex-shrink: 0; }
+    .component-chip .chip-arrow { margin-left: auto; font-size: 10px; color: var(--text-muted); transition: transform 0.15s; }
+    .component-chip.expanded .chip-arrow { transform: rotate(90deg); }
+
+    /* Audio panel */
+    .audio-slot {
+      display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--radius);
+      background: var(--bg-deep); border: 1px solid var(--border); margin-bottom: 6px; cursor: pointer; transition: all 0.15s;
+    }
+    .audio-slot:hover { border-color: var(--orange); }
+    .audio-icon { width: 32px; height: 32px; border-radius: 6px; background: var(--orange-dim); display: flex; align-items: center; justify-content: center; }
+    .audio-icon svg { width: 16px; height: 16px; color: var(--orange); }
+    .audio-info { flex: 1; }
+    .audio-name { font-size: 12px; font-weight: 700; }
+    .audio-format { font-size: 10px; color: var(--text-dim); }
+    .audio-waveform { height: 20px; background: var(--bg-hover); border-radius: 4px; overflow: hidden; display: flex; align-items: flex-end; gap: 1px; padding: 2px; }
+    .audio-waveform .bar { flex: 1; background: var(--orange); border-radius: 1px; min-height: 2px; }
+
+    /* UI Builder panel */
+    .ui-element-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .ui-element-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px;
+      border-radius: var(--radius); background: var(--bg-deep); border: 1px solid var(--border);
+      color: var(--text-dim); cursor: pointer; font-family: inherit; font-size: 10px; font-weight: 700;
+      transition: all 0.15s;
+    }
+    .ui-element-btn:hover { border-color: var(--yellow); color: var(--yellow); background: var(--yellow-dim); }
+    .ui-element-btn svg { width: 24px; height: 24px; }
+
+    /* ===== BOTTOM PANEL: ASSETS + TILEMAP + CONSOLE ===== */
+    #bottom-panel { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; background: var(--bg-surface); border-top: 1px solid var(--border); }
+    .bottom-tabs { display: flex; flex-shrink: 0; }
+    .bottom-tab {
+      padding: 8px 16px; font-size: 11px; font-weight: 700; color: var(--text-dim); cursor: pointer;
+      border-bottom: 2px solid transparent; transition: all 0.15s;
+      background: none; border-top: none; border-left: none; border-right: none; font-family: inherit;
+    }
+    .bottom-tab:hover { color: var(--text); }
+    .bottom-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .bottom-tab-content { flex: 1; overflow: auto; display: none; }
+    .bottom-tab-content.active { display: flex; }
+
+    /* Quick Add palette */
+    .palette-items { display: flex; gap: 6px; padding: 8px 14px; overflow-x: auto; flex: 1; align-items: flex-start; }
+    .palette-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 72px; padding: 10px 12px;
+      border-radius: var(--radius); background: var(--bg-deep); border: 1px solid var(--border);
+      color: var(--text-dim); cursor: pointer; font-family: inherit; font-size: 10px; font-weight: 700;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .palette-btn:hover { background: var(--bg-hover); border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+    .palette-btn svg { width: 24px; height: 24px; }
+
+    /* Tilemap editor */
+    .tilemap-content { display: flex; flex: 1; overflow: hidden; }
+    .tilemap-palette { width: 200px; border-right: 1px solid var(--border); padding: 8px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; }
+    .tile-swatch {
+      width: 32px; height: 32px; border-radius: 4px; border: 2px solid var(--border); cursor: pointer;
+      transition: all 0.12s; position: relative;
+    }
+    .tile-swatch:hover { border-color: var(--text-dim); transform: scale(1.1); }
+    .tile-swatch.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+    .tilemap-tools { flex: 1; display: flex; flex-direction: column; }
+    .tilemap-toolbar { display: flex; align-items: center; gap: 4px; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+    .tilemap-toolbar .tool-btn { width: 28px; height: 26px; }
+    .tilemap-grid-area { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; background: var(--bg-deep); }
+    .tilemap-grid {
+      display: grid; gap: 1px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 4px;
+    }
+    .tilemap-cell {
+      width: 28px; height: 28px; background: var(--bg-surface); cursor: pointer; transition: background 0.08s; border-radius: 1px;
+    }
+    .tilemap-cell:hover { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+    /* Console */
+    .console-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    #console-output {
+      flex: 1; overflow-y: auto; padding: 8px 14px; font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; line-height: 1.8;
+    }
+    #console-output .log { color: var(--text-dim); }
+    #console-output .result { color: var(--accent); }
+    #console-output .error { color: var(--red); }
+    #console-output .warn { color: var(--orange); }
+    .console-input-row { display: flex; align-items: center; padding: 6px 14px; gap: 8px; border-top: 1px solid var(--border); background: var(--bg-raised); }
+    .prompt { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 13px; font-weight: 700; }
+    #console-input {
+      flex: 1; padding: 6px 10px; border-radius: var(--radius-sm); background: var(--bg-deep);
+      border: 1px solid var(--border); color: var(--text); font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; outline: none;
+    }
+    #console-input:focus { border-color: var(--accent); }
+
+    /* ===== CONTEXT MENU ===== */
+    .context-menu {
+      position: fixed; z-index: 1000; background: var(--bg-raised); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 4px; min-width: 180px; box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      display: none; backdrop-filter: blur(12px);
+    }
+    .context-menu.visible { display: block; }
+    .ctx-item {
+      display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: var(--radius-sm);
+      font-size: 12px; cursor: pointer; color: var(--text); transition: all 0.1s;
+    }
+    .ctx-item:hover { background: var(--accent-dim); color: var(--accent); }
+    .ctx-item svg { width: 14px; height: 14px; color: var(--text-dim); }
+    .ctx-item:hover svg { color: var(--accent); }
+    .ctx-item .ctx-shortcut { margin-left: auto; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+    .ctx-divider { height: 1px; background: var(--border); margin: 4px 8px; }
+    .ctx-item.danger { color: var(--red); }
+    .ctx-item.danger:hover { background: var(--red-dim); }
+    .ctx-item.danger svg { color: var(--red); }
+
+    /* ===== PROJECT MANAGEMENT MODAL ===== */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 900;
+      display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+    }
+    .modal-backdrop.visible { display: flex; }
+    .modal {
+      background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+      width: 680px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.5); animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between; padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title { font-size: 16px; font-weight: 800; }
+    .modal-close { width: 28px; height: 28px; border-radius: 6px; background: none; border: none; color: var(--text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
+    .modal-close:hover { background: var(--bg-hover); color: var(--text); }
+    .modal-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 24px; border-top: 1px solid var(--border); }
+    .modal-btn {
+      padding: 8px 20px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: all 0.15s;
+    }
+    .modal-btn.secondary { background: var(--bg-deep); border: 1px solid var(--border); color: var(--text-dim); }
+    .modal-btn.secondary:hover { border-color: var(--text-dim); color: var(--text); }
+    .modal-btn.primary { background: var(--accent); border: 1px solid var(--accent); color: var(--bg-deep); }
+    .modal-btn.primary:hover { background: #6bf0b6; }
+
+    /* Project settings form */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+    .form-input {
+      width: 100%; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--bg-deep);
+      border: 1px solid var(--border); color: var(--text); font-family: 'Nunito', sans-serif; font-size: 13px; outline: none;
+    }
+    .form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+    .tag-input { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 10px; border-radius: var(--radius-sm); background: var(--bg-deep); border: 1px solid var(--border); min-height: 36px; }
+    .tag { display: flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); font-size: 11px; font-weight: 700; }
+    .tag .tag-x { cursor: pointer; opacity: 0.6; }
+    .tag .tag-x:hover { opacity: 1; }
+
+    /* Build targets */
+    .build-targets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .build-target {
+      display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px;
+      border-radius: var(--radius); background: var(--bg-deep); border: 1px solid var(--border);
+      cursor: pointer; transition: all 0.15s; text-align: center;
+    }
+    .build-target:hover { border-color: var(--blue); }
+    .build-target.selected { border-color: var(--accent); background: var(--accent-dim); }
+    .build-target svg { width: 28px; height: 28px; color: var(--text-dim); }
+    .build-target.selected svg { color: var(--accent); }
+    .build-target-name { font-size: 11px; font-weight: 700; }
+
+    /* ===== STATUS BAR ===== */
+    #status-bar {
+      display: flex; align-items: center; height: 24px; min-height: 24px; padding: 0 12px;
+      background: var(--bg-raised); border-top: 1px solid var(--border); font-size: 10px;
+      font-family: 'JetBrains Mono', monospace; color: var(--text-muted); gap: 16px; flex-shrink: 0;
+    }
+    .status-item { display: flex; align-items: center; gap: 4px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .status-dot.green { background: var(--accent); }
+    .status-dot.orange { background: var(--orange); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<!-- ===== WELCOME SCREEN ===== -->
+<div id="welcome-screen">
+  <div class="welcome-logo">NovaStar Engine</div>
+  <div class="welcome-version"><span class="dot"></span> v0.3.0</div>
+  <div class="welcome-sub">Create amazing games with prefabs, tilemaps, and more</div>
+
+  <div class="welcome-tabs">
+    <button class="welcome-tab active" data-wtab="templates">New Project</button>
+    <button class="welcome-tab" data-wtab="recent">Recent Projects</button>
+  </div>
+
+  <div class="template-grid" id="template-section">
+    <div class="template-card" data-template="platformer3d">
+      <svg viewBox="0 0 44 44" fill="none"><rect x="4" y="28" width="36" height="8" rx="3" fill="#4ee6a0"/><rect x="14" y="16" width="16" height="12" rx="4" fill="#4da8ff"/><circle cx="22" cy="12" r="6" fill="#4da8ff"/><circle cx="19.5" cy="11" r="1.8" fill="white"/><circle cx="24.5" cy="11" r="1.8" fill="white"/></svg>
+      <span class="tc-name">3D Platformer</span>
+      <span class="tc-desc">Jump, collect, and explore with player, platforms, and collectibles.</span>
+    </div>
+    <div class="template-card" data-template="topdown2d">
+      <svg viewBox="0 0 44 44" fill="none"><rect x="2" y="2" width="40" height="40" rx="5" fill="#1e2230" stroke="#4ee6a0" stroke-width="1.5"/><rect x="6" y="6" width="8" height="8" rx="1" fill="#4a8f3f"/><rect x="16" y="6" width="8" height="8" rx="1" fill="#4a8f3f"/><rect x="26" y="6" width="8" height="8" rx="1" fill="#8b7355"/><rect x="6" y="16" width="8" height="8" rx="1" fill="#4a8f3f"/><rect x="16" y="16" width="8" height="8" rx="1" fill="#6b6b6b"/><rect x="26" y="16" width="8" height="8" rx="1" fill="#4a8f3f"/><circle cx="30" cy="30" r="5" fill="#4da8ff"/></svg>
+      <span class="tc-name">2D Top-Down</span>
+      <span class="tc-desc">Tilemap world with player movement for RPGs and adventures.</span>
+    </div>
+    <div class="template-card" data-template="sidescroller">
+      <svg viewBox="0 0 44 44" fill="none"><rect x="2" y="32" width="40" height="10" rx="3" fill="#4a8f3f"/><rect x="8" y="22" width="12" height="10" rx="2" fill="#8b7355"/><rect x="26" y="18" width="10" height="14" rx="2" fill="#8b7355"/><circle cx="16" cy="27" r="4" fill="#4da8ff"/><path d="M2 14 Q12 6 22 14 Q32 22 42 14" stroke="#ffa64d" stroke-width="2" fill="none"/></svg>
+      <span class="tc-name">2D Side-Scroller</span>
+      <span class="tc-desc">Classic side-scrolling action with run, jump, and dodge mechanics.</span>
+    </div>
+    <div class="template-card" data-template="arena">
+      <svg viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="18" fill="#1e2230" stroke="#ff5568" stroke-width="1.5"/><circle cx="15" cy="18" r="4" fill="#4da8ff"/><circle cx="29" cy="26" r="4" fill="#ff5568"/><path d="M15 18 L29 26" stroke="#ffa64d" stroke-width="1.5" stroke-dasharray="3 2"/><circle cx="22" cy="10" r="2.5" fill="#ffe066"/><circle cx="10" cy="28" r="2.5" fill="#ffe066"/><circle cx="34" cy="16" r="2.5" fill="#ffe066"/></svg>
+      <span class="tc-name">Arena Shooter</span>
+      <span class="tc-desc">Fast-paced arena combat with enemies, projectiles, and power-ups.</span>
+    </div>
+    <div class="template-card" data-template="puzzle">
+      <svg viewBox="0 0 44 44" fill="none"><rect x="4" y="4" width="16" height="16" rx="4" fill="#a86bff"/><rect x="24" y="4" width="16" height="16" rx="4" fill="#4da8ff"/><rect x="4" y="24" width="16" height="16" rx="4" fill="#4ee6a0"/><rect x="24" y="24" width="16" height="16" rx="4" fill="#ffa64d"/><path d="M20 12 L24 12" stroke="#2a3040" stroke-width="2"/><path d="M12 20 L12 24" stroke="#2a3040" stroke-width="2"/></svg>
+      <span class="tc-name">Puzzle Game</span>
+      <span class="tc-desc">Logic-based gameplay with grid system and interactive objects.</span>
+    </div>
+    <div class="template-card blank" data-template="blank">
+      <svg viewBox="0 0 44 44" fill="none"><rect x="4" y="4" width="36" height="36" rx="5" stroke="#7b84a0" stroke-width="1.5" stroke-dasharray="4 3"/><line x1="22" y1="16" x2="22" y2="28" stroke="#7b84a0" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="22" x2="28" y2="22" stroke="#7b84a0" stroke-width="2" stroke-linecap="round"/></svg>
+      <span class="tc-name">Blank Project</span>
+      <span class="tc-desc">Start from scratch with an empty scene and full creative freedom.</span>
+    </div>
+  </div>
+
+  <div class="recent-list" id="recent-section">
+    <div class="recent-item">
+      <div class="recent-icon"><svg viewBox="0 0 18 18" fill="none"><polygon points="9,1 11,7 17,7 12,10.5 14,17 9,13 4,17 6,10.5 1,7 7,7" fill="currentColor"/></svg></div>
+      <div class="recent-info"><div class="recent-name">Star Hopper Demo</div><div class="recent-meta">Last edited 2 hours ago · 3D Platformer</div></div>
+    </div>
+    <div class="recent-item">
+      <div class="recent-icon"><svg viewBox="0 0 18 18" fill="none"><polygon points="9,1 11,7 17,7 12,10.5 14,17 9,13 4,17 6,10.5 1,7 7,7" fill="currentColor"/></svg></div>
+      <div class="recent-info"><div class="recent-name">Tilemap Prototype</div><div class="recent-meta">Last edited yesterday · 2D Top-Down</div></div>
+    </div>
+  </div>
+
+  <div class="welcome-footer">NovaStar Engine v0.3.0 — Built with love for game developers</div>
+</div>
+
+<!-- ===== CONTEXT MENU ===== -->
+<div class="context-menu" id="context-menu">
+  <div class="ctx-item" data-action="duplicate"><svg viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="5" y="1" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="var(--bg-raised)"/></svg>Duplicate<span class="ctx-shortcut">Ctrl+D</span></div>
+  <div class="ctx-item" data-action="make-prefab"><svg viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="7" r="2.5" fill="currentColor"/></svg>Make Prefab</div>
+  <div class="ctx-item" data-action="add-component"><svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.2"/><line x1="7" y1="4.5" x2="7" y2="9.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><line x1="4.5" y1="7" x2="9.5" y2="7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Add Component</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item" data-action="rename"><svg viewBox="0 0 14 14" fill="none"><path d="M2 11 L10 3 L12 5 L4 13 H2 Z" stroke="currentColor" stroke-width="1.2"/></svg>Rename<span class="ctx-shortcut">F2</span></div>
+  <div class="ctx-item danger" data-action="delete"><svg viewBox="0 0 14 14" fill="none"><path d="M3 4 H11 L10 13 H4 Z" stroke="currentColor" stroke-width="1.2"/><line x1="1" y1="4" x2="13" y2="4" stroke="currentColor" stroke-width="1.2"/><path d="M5 4 V2.5 C5 2 5.5 1.5 6 1.5 H8 C8.5 1.5 9 2 9 2.5 V4" stroke="currentColor" stroke-width="1.2"/></svg>Delete<span class="ctx-shortcut">Del</span></div>
+</div>
+
+<!-- ===== PROJECT SETTINGS MODAL ===== -->
+<div class="modal-backdrop" id="project-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Project Settings</span>
+      <button class="modal-close" id="modal-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Project Name</label>
+          <input class="form-input" type="text" value="Star Hopper" id="proj-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Version</label>
+          <input class="form-input" type="text" value="1.0.0" id="proj-version">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input form-textarea" id="proj-desc">A cartoony 3D platformer built with NovaStar Engine</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Resolution</label>
+          <input class="form-input" type="text" value="1280 x 720" id="proj-res">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target FPS</label>
+          <input class="form-input" type="number" value="60" id="proj-fps">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Physics Gravity</label>
+        <input class="form-input" type="number" value="-25" step="0.5" id="proj-gravity">
+      </div>
+      <div class="form-group" style="margin-top:24px;">
+        <label class="form-label">Build Targets</label>
+        <div class="build-targets">
+          <div class="build-target selected" data-target="web">
+            <svg viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="11" stroke="currentColor" stroke-width="1.5"/><ellipse cx="14" cy="14" rx="5" ry="11" stroke="currentColor" stroke-width="1.2"/><line x1="3" y1="14" x2="25" y2="14" stroke="currentColor" stroke-width="1.2"/></svg>
+            <span class="build-target-name">Web (HTML5)</span>
+          </div>
+          <div class="build-target" data-target="windows">
+            <svg viewBox="0 0 28 28" fill="none"><path d="M4 7 L13 5.5 V13 H4 Z M14.5 5.3 L24 3.5 V13 H14.5 Z M4 14.5 H13 V22 L4 20.5 Z M14.5 14.5 H24 V24 L14.5 22.5 Z" fill="currentColor"/></svg>
+            <span class="build-target-name">Windows</span>
+          </div>
+          <div class="build-target" data-target="linux">
+            <svg viewBox="0 0 28 28" fill="none"><ellipse cx="14" cy="12" rx="7" ry="8" stroke="currentColor" stroke-width="1.5"/><circle cx="11.5" cy="10.5" r="1.2" fill="currentColor"/><circle cx="16.5" cy="10.5" r="1.2" fill="currentColor"/><path d="M7 18 C7 22 10 24 14 24 C18 24 21 22 21 18" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="build-target-name">Linux</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn secondary" id="modal-cancel-btn">Cancel</button>
+      <button class="modal-btn primary" id="modal-save-btn">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EDITOR ===== -->
+<div id="editor-root">
+  <!-- Toolbar -->
+  <header id="toolbar">
+    <div class="toolbar-group">
+      <span class="logo">
+        <svg viewBox="0 0 20 20" fill="none"><polygon points="10,1 12.5,7 19,7 13.5,11.5 15.5,18 10,14 4.5,18 6.5,11.5 1,7 7.5,7" fill="#4ee6a0"/></svg>
+        NovaStar
+      </span>
+      <button class="tool-btn" id="btn-project" title="Project Settings">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M6.5 1.5 H9.5 L10 3 L12 4 L13.5 3 L15 4.5 L14 6.5 L14.5 8 L13 9 L13.5 11 L12 12.5 L10 11.5 L8 12.5 H6.5 L5.5 11 L3.5 11.5 L2 10 L3 8 L2 6 L3.5 4.5 L5 5 L6 3 Z" stroke="currentColor" stroke-width="1.1"/><circle cx="8" cy="7.5" r="2.5" stroke="currentColor" stroke-width="1.1"/></svg>
+      </button>
+      <div class="separator"></div>
+      <button class="tool-btn active" data-tool="select" title="Select"><svg viewBox="0 0 16 16" fill="none"><path d="M3 2 L3 13 L7 9 L11 13 L13 11 L9 7 L13 3 Z" fill="currentColor"/></svg><span class="shortcut">V</span></button>
+      <button class="tool-btn" data-tool="move" title="Move"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1 L10 4 H9 V7 H12 V6 L15 8 L12 10 V9 H9 V12 H10 L8 15 L6 12 H7 V9 H4 V10 L1 8 L4 6 V7 H7 V4 H6 Z" fill="currentColor"/></svg><span class="shortcut">G</span></button>
+      <button class="tool-btn" data-tool="rotate" title="Rotate"><svg viewBox="0 0 16 16" fill="none"><path d="M8 2 A6 6 0 1 1 2.5 10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><polygon points="8,0 10,3 6,3" fill="currentColor"/></svg><span class="shortcut">R</span></button>
+      <button class="tool-btn" data-tool="scale" title="Scale"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="currentColor"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M7 7 L9 9" stroke="currentColor" stroke-width="1.2"/></svg><span class="shortcut">S</span></button>
+      <div class="separator"></div>
+      <button class="tool-btn play-btn" id="btn-play" title="Play (F5)"><svg viewBox="0 0 16 16" fill="none"><polygon points="4,2 14,8 4,14" fill="currentColor"/></svg> Play</button>
+    </div>
+    <div class="toolbar-group">
+      <button class="tool-btn" id="btn-undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 16 16" fill="none"><path d="M4 6 L1 9 L4 12" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 9 H10 C12.5 9 14 10.5 14 13" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>
+      <button class="tool-btn" id="btn-redo" title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 16 16" fill="none"><path d="M12 6 L15 9 L12 12" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 9 H6 C3.5 9 2 10.5 2 13" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>
+      <div class="separator"></div>
+      <button class="tool-btn" id="btn-save" title="Save (Ctrl+S)"><svg viewBox="0 0 16 16" fill="none"><path d="M3 1 H11 L14 4 V13 C14 14.1 13.1 15 12 15 H4 C2.9 15 2 14.1 2 13 V3 C2 1.9 2.9 1 4 1 Z" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="5" y="1" width="6" height="5" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="4" y="9" width="8" height="5" rx="1" fill="currentColor" opacity="0.3"/></svg></button>
+      <button class="tool-btn" id="btn-load" title="Open (Ctrl+O)"><svg viewBox="0 0 16 16" fill="none"><path d="M2 4 H6 L8 2 H13 C13.6 2 14 2.4 14 3 V4 H2 Z" fill="currentColor" opacity="0.5"/><path d="M1 5 H15 V12 C15 13.1 14.1 14 13 14 H3 C1.9 14 1 13.1 1 12 Z" fill="currentColor" opacity="0.3"/></svg></button>
+      <button class="tool-btn" id="btn-export" title="Export Build"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="6" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M8 1 V9 M5 4 L8 1 L11 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+  </header>
+
+  <!-- Editor Body -->
+  <div id="editor-body">
+    <!-- Left Panel: Hierarchy + Prefabs -->
+    <aside id="left-panel">
+      <div class="left-tabs">
+        <button class="left-tab active" data-ltab="hierarchy">Hierarchy</button>
+        <button class="left-tab" data-ltab="prefabs">Prefabs</button>
+      </div>
+
+      <!-- Hierarchy Tab -->
+      <div class="left-tab-content active" id="ltab-hierarchy">
+        <div id="hierarchy-tree">
+          <div class="h-item selected">
+            <span class="h-icon"><svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" fill="#ffe066" opacity="0.5"/><circle cx="7" cy="7" r="2.5" fill="#ffe066"/></svg></span>
+            <span>DirectionalLight</span>
+            <span class="h-vis"><svg viewBox="0 0 16 16" fill="none"><path d="M1 8 C1 8 4 3 8 3 C12 3 15 8 15 8 C15 8 12 13 8 13 C4 13 1 8 1 8 Z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/></svg></span>
+          </div>
+          <div class="h-item">
+            <span class="h-icon"><svg viewBox="0 0 14 14" fill="none"><rect x="2" y="8" width="10" height="4" rx="1.5" fill="#4ee6a0"/></svg></span>
+            <span>Ground</span>
+            <span class="h-vis"><svg viewBox="0 0 16 16" fill="none"><path d="M1 8 C1 8 4 3 8 3 C12 3 15 8 15 8 C15 8 12 13 8 13 C4 13 1 8 1 8 Z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/></svg></span>
+          </div>
+          <div class="h-item prefab-instance">
+            <span class="h-icon"><svg viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5" r="3.5" fill="#4da8ff"/><rect x="4" y="8" width="6" height="4" rx="2" fill="#4da8ff"/></svg></span>
+            <span>Player <span style="color:var(--purple);font-size:10px;">(prefab)</span></span>
+            <span class="h-vis"><svg viewBox="0 0 16 16" fill="none"><path d="M1 8 C1 8 4 3 8 3 C12 3 15 8 15 8 C15 8 12 13 8 13 C4 13 1 8 1 8 Z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/></svg></span>
+          </div>
+          <div class="h-item">
+            <span class="h-icon"><svg viewBox="0 0 14 14" fill="none"><polygon points="7,1 9,5.5 14,5.5 10,8.5 11.5,13 7,10 2.5,13 4,8.5 0,5.5 5,5.5" fill="#ffe066"/></svg></span>
+            <span>Star_01</span>
+            <span class="h-vis"><svg viewBox="0 0 16 16" fill="none"><path d="M1 8 C1 8 4 3 8 3 C12 3 15 8 15 8 C15 8 12 13 8 13 C4 13 1 8 1 8 Z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/></svg></span>
+          </div>
+          <div class="h-item">
+            <span class="h-icon"><svg viewBox="0 0 14 14" fill="none"><polygon points="7,1 9,5.5 14,5.5 10,8.5 11.5,13 7,10 2.5,13 4,8.5 0,5.5 5,5.5" fill="#ffe066"/></svg></span>
+            <span>Star_02</span>
+            <span class="h-vis"><svg viewBox="0 0 16 16" fill="none"><path d="M1 8 C1 8 4 3 8 3 C12 3 15 8 15 8 C15 8 12 13 8 13 C4 13 1 8 1 8 Z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/></svg></span>
+          </div>
+          <div class="h-item">
+            <span class="h-icon"><svg viewBox="0 0 14 14" fill="none"><ellipse cx="7" cy="9" rx="5" ry="3.5" fill="#ff5568"/><circle cx="5.5" cy="8" r="1.2" fill="white"/><circle cx="8.5" cy="8" r="1.2" fill="white"/></svg></span>
+            <span>Slime_Enemy</span>
+            <span class="h-vis"><svg viewBox="0 0 16 16" fill="none"><path d="M1 8 C1 8 4 3 8 3 C12 3 15 8 15 8 C15 8 12 13 8 13 C4 13 1 8 1 8 Z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/></svg></span>
+          </div>
+          <div class="h-item">
+            <span class="h-icon"><svg viewBox="0 0 14 14" fill="none"><rect x="2" y="7" width="10" height="4" rx="1.5" fill="#4ee6a0"/><rect x="4" y="4" width="6" height="4" rx="1" fill="#4ee6a0" opacity="0.5"/></svg></span>
+            <span>FloatingPlatform</span>
+            <span class="h-vis"><svg viewBox="0 0 16 16" fill="none"><path d="M1 8 C1 8 4 3 8 3 C12 3 15 8 15 8 C15 8 12 13 8 13 C4 13 1 8 1 8 Z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/></svg></span>
+          </div>
+        </div>
+        <div class="panel-footer"><button class="footer-btn" id="btn-add-entity">+ Add Entity</button></div>
+      </div>
+
+      <!-- Prefabs Tab -->
+      <div class="left-tab-content" id="ltab-prefabs">
+        <div id="prefab-list">
+          <div class="prefab-card">
+            <div class="prefab-thumb"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="4" fill="currentColor"/><rect x="6" y="11" width="8" height="6" rx="3" fill="currentColor"/></svg></div>
+            <div class="prefab-info"><div class="prefab-name">Player Character</div><div class="prefab-meta">3 components · Physics, Input, Mesh</div></div>
+            <span class="prefab-badge">PREFAB</span>
+          </div>
+          <div class="prefab-card">
+            <div class="prefab-thumb"><svg viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="13" rx="6" ry="4" fill="currentColor"/><circle cx="7.5" cy="11.5" r="1.5" fill="white"/><circle cx="12.5" cy="11.5" r="1.5" fill="white"/></svg></div>
+            <div class="prefab-info"><div class="prefab-name">Slime Enemy</div><div class="prefab-meta">4 components · Physics, AI, Mesh, Health</div></div>
+            <span class="prefab-badge">PREFAB</span>
+          </div>
+          <div class="prefab-card">
+            <div class="prefab-thumb"><svg viewBox="0 0 20 20" fill="none"><polygon points="10,2 12.5,7.5 18,7.5 13.5,11 15,17 10,13.5 5,17 6.5,11 2,7.5 7.5,7.5" fill="currentColor"/></svg></div>
+            <div class="prefab-info"><div class="prefab-name">Collectible Star</div><div class="prefab-meta">2 components · Trigger, Mesh</div></div>
+            <span class="prefab-badge">PREFAB</span>
+          </div>
+          <div class="prefab-card">
+            <div class="prefab-thumb"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="12" width="14" height="5" rx="2" fill="currentColor"/><rect x="5" y="9" width="10" height="4" rx="1" fill="currentColor" opacity="0.5"/></svg></div>
+            <div class="prefab-info"><div class="prefab-name">Moving Platform</div><div class="prefab-meta">3 components · Physics, Waypoint, Mesh</div></div>
+            <span class="prefab-badge">PREFAB</span>
+          </div>
+        </div>
+        <div class="panel-footer"><button class="footer-btn" id="btn-new-prefab">+ Create Prefab</button></div>
+      </div>
+    </aside>
+
+    <!-- Viewport -->
+    <main id="viewport">
+      <canvas id="editor-canvas"></canvas>
+      <div id="viewport-overlay">
+        <span class="viewport-pill" id="fps-counter">60 FPS</span>
+        <span class="viewport-pill" id="entity-count">7 entities</span>
+        <span class="viewport-pill" id="scene-name">Scene: Level_01</span>
+      </div>
+      <div id="viewport-tools">
+        <button class="vp-tool-btn" id="btn-grid-toggle"><svg viewBox="0 0 14 14" fill="none"><path d="M1 1 H13 M1 5 H13 M1 9 H13 M1 13 H13 M1 1 V13 M5 1 V13 M9 1 V13 M13 1 V13" stroke="currentColor" stroke-width="0.8"/></svg>Grid</button>
+        <button class="vp-tool-btn" id="btn-snap-toggle"><svg viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="4" height="4" rx="0.5" stroke="currentColor" stroke-width="1"/><rect x="8" y="8" width="4" height="4" rx="0.5" stroke="currentColor" stroke-width="1"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/></svg>Snap</button>
+        <button class="vp-tool-btn" id="btn-camera-reset"><svg viewBox="0 0 14 14" fill="none"><rect x="1" y="3" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="7.5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 1 H9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>Reset Cam</button>
+      </div>
+    </main>
+
+    <!-- Right Panel: Inspector + Audio + UI Builder -->
+    <aside id="right-panel">
+      <div class="right-tabs">
+        <button class="right-tab active" data-rtab="inspector">Inspector</button>
+        <button class="right-tab" data-rtab="audio">Audio</button>
+        <button class="right-tab" data-rtab="ui-builder">UI</button>
+      </div>
+
+      <!-- Inspector Tab -->
+      <div class="right-tab-content active" id="rtab-inspector">
+        <div class="insp-section">
+          <div class="insp-title"><svg viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.2"/></svg> Entity</div>
+          <div class="insp-row" style="margin-bottom:10px;"><label style="width:auto;">Name</label><input class="insp-input" value="Player" style="font-weight:700;"></div>
+          <div class="insp-checkbox"><input type="checkbox" checked><span>Active</span></div>
+          <div class="insp-checkbox"><input type="checkbox"><span>Static</span></div>
+        </div>
+        <div class="insp-section">
+          <div class="insp-title"><svg viewBox="0 0 12 12" fill="none"><path d="M6 1 L11 4 V8 L6 11 L1 8 V4 Z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg> Transform</div>
+          <div class="insp-row"><label>X</label><input class="insp-input x" value="0.00"><label>Y</label><input class="insp-input y" value="5.00"><label>Z</label><input class="insp-input z" value="0.00"></div>
+          <div style="font-size:10px;color:var(--text-muted);margin:6px 0 4px 28px;">ROTATION</div>
+          <div class="insp-row"><label>X</label><input class="insp-input x" value="0.0"><label>Y</label><input class="insp-input y" value="0.0"><label>Z</label><input class="insp-input z" value="0.0"></div>
+          <div style="font-size:10px;color:var(--text-muted);margin:6px 0 4px 28px;">SCALE</div>
+          <div class="insp-row"><label>X</label><input class="insp-input x" value="1.0"><label>Y</label><input class="insp-input y" value="1.0"><label>Z</label><input class="insp-input z" value="1.0"></div>
+        </div>
+        <div class="insp-section">
+          <div class="insp-title"><svg viewBox="0 0 12 12" fill="none"><rect x="1" y="3" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.2"/></svg> Components</div>
+          <div class="component-list">
+            <div class="component-chip expanded"><svg viewBox="0 0 14 14" fill="none"><rect x="2" y="4" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.2"/><circle cx="7" cy="8" r="2" fill="currentColor"/></svg>ToonMesh<span class="chip-arrow">▸</span></div>
+            <div class="component-chip"><svg viewBox="0 0 14 14" fill="none"><rect x="3" y="3" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 1"/></svg>PhysicsBody<span class="chip-arrow">▸</span></div>
+            <div class="component-chip"><svg viewBox="0 0 14 14" fill="none"><path d="M3 11 L7 3 L11 11 Z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>InputController<span class="chip-arrow">▸</span></div>
+          </div>
+          <button class="insp-btn primary" style="margin-top:12px;">+ Add Component</button>
+        </div>
+        <div class="insp-section">
+          <div class="insp-title"><svg viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="6" r="2.5" fill="currentColor"/></svg> Prefab</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">Instance of <strong style="color:var(--purple);">Player Character</strong></div>
+          <button class="insp-btn primary">Apply to Prefab</button>
+          <button class="insp-btn danger">Unlink Prefab</button>
+        </div>
+        <button class="insp-btn danger" style="margin-top:8px;">Delete Entity</button>
+      </div>
+
+      <!-- Audio Tab -->
+      <div class="right-tab-content" id="rtab-audio">
+        <div class="insp-section">
+          <div class="insp-title"><svg viewBox="0 0 12 12" fill="none"><path d="M2 4 H4 L7 1 V11 L4 8 H2 C1.4 8 1 7.6 1 7 V5 C1 4.4 1.4 4 2 4 Z" fill="currentColor"/><path d="M9 4 C10 5 10 7 9 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Audio Library</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:12px;">Drag audio files here or click to import WAV, MP3, OGG files.</div>
+          <div class="audio-slot">
+            <div class="audio-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M2 5 H4 L8 2 V14 L4 11 H2 C1.4 11 1 10.6 1 10 V6 C1 5.4 1.4 5 2 5 Z" fill="currentColor"/><path d="M10 5 C11.5 6 11.5 10 10 11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M12 3 C14 5 14 11 12 13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+            <div class="audio-info">
+              <div class="audio-name">jump_sfx.wav</div>
+              <div class="audio-format">WAV · 44.1kHz · 0.3s</div>
+              <div class="audio-waveform"><div class="bar" style="height:30%"></div><div class="bar" style="height:60%"></div><div class="bar" style="height:90%"></div><div class="bar" style="height:100%"></div><div class="bar" style="height:80%"></div><div class="bar" style="height:50%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:40%"></div><div class="bar" style="height:20%"></div><div class="bar" style="height:60%"></div><div class="bar" style="height:85%"></div><div class="bar" style="height:45%"></div></div>
+            </div>
+          </div>
+          <div class="audio-slot">
+            <div class="audio-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M2 5 H4 L8 2 V14 L4 11 H2 C1.4 11 1 10.6 1 10 V6 C1 5.4 1.4 5 2 5 Z" fill="currentColor"/><path d="M10 5 C11.5 6 11.5 10 10 11" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M12 3 C14 5 14 11 12 13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+            <div class="audio-info">
+              <div class="audio-name">collect_chime.ogg</div>
+              <div class="audio-format">OGG · 48kHz · 0.5s</div>
+              <div class="audio-waveform"><div class="bar" style="height:20%"></div><div class="bar" style="height:40%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:100%"></div><div class="bar" style="height:90%"></div><div class="bar" style="height:60%"></div><div class="bar" style="height:30%"></div><div class="bar" style="height:50%"></div><div class="bar" style="height:80%"></div><div class="bar" style="height:35%"></div></div>
+            </div>
+          </div>
+          <div class="audio-slot">
+            <div class="audio-icon"><svg viewBox="0 0 16 16" fill="none"><path d="M4 2 H12 L14 4 V12 C14 13.1 13.1 14 12 14 H4 C2.9 14 2 13.1 2 12 V4 C2 2.9 2.9 2 4 2 Z" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M5 8 H11 M5 10.5 H9" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg></div>
+            <div class="audio-info">
+              <div class="audio-name">bg_music.mp3</div>
+              <div class="audio-format">MP3 · 44.1kHz · 2:34</div>
+              <div class="audio-waveform"><div class="bar" style="height:40%"></div><div class="bar" style="height:55%"></div><div class="bar" style="height:65%"></div><div class="bar" style="height:50%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:80%"></div><div class="bar" style="height:60%"></div><div class="bar" style="height:75%"></div><div class="bar" style="height:55%"></div><div class="bar" style="height:45%"></div><div class="bar" style="height:65%"></div><div class="bar" style="height:70%"></div></div>
+            </div>
+          </div>
+          <button class="insp-btn primary">+ Import Audio File</button>
+        </div>
+        <div class="insp-section">
+          <div class="insp-title"><svg viewBox="0 0 12 12" fill="none"><path d="M6 1 V11 M1 6 H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> Synthesized Sounds</div>
+          <div style="font-size:11px;color:var(--text-dim);">Built-in synthesized sounds are still available via <code style="background:var(--bg-deep);padding:1px 4px;border-radius:3px;">Audio.play('jump')</code></div>
+        </div>
+      </div>
+
+      <!-- UI Builder Tab -->
+      <div class="right-tab-content" id="rtab-ui-builder">
+        <div class="insp-section">
+          <div class="insp-title"><svg viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="3" y="3" width="6" height="2" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="3" y="7" width="4" height="2" rx="0.5" fill="currentColor" opacity="0.3"/></svg> UI Elements</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:12px;">Add UI elements to the game HUD. Drag to position in the viewport.</div>
+          <div class="ui-element-grid">
+            <button class="ui-element-btn">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="8" width="20" height="8" rx="2" stroke="#ffe066" stroke-width="1.5"/><line x1="6" y1="12" x2="18" y2="12" stroke="#ffe066" stroke-width="2" stroke-linecap="round"/></svg>
+              Health Bar
+            </button>
+            <button class="ui-element-btn">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="#ffe066" stroke-width="1.5"/><text x="12" y="15" text-anchor="middle" fill="#ffe066" font-size="9" font-weight="bold">42</text></svg>
+              Score
+            </button>
+            <button class="ui-element-btn">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3" stroke="#ffe066" stroke-width="1.5"/><text x="12" y="14" text-anchor="middle" fill="#ffe066" font-size="7" font-weight="bold">PLAY</text></svg>
+              Button
+            </button>
+            <button class="ui-element-btn">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#ffe066" stroke-width="1.5"/><line x1="7" y1="8" x2="17" y2="8" stroke="#ffe066" stroke-width="1" stroke-linecap="round"/><line x1="7" y1="12" x2="14" y2="12" stroke="#ffe066" stroke-width="1" stroke-linecap="round"/><line x1="7" y1="16" x2="11" y2="16" stroke="#ffe066" stroke-width="1" stroke-linecap="round"/></svg>
+              Text Box
+            </button>
+            <button class="ui-element-btn">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#ffe066" stroke-width="1.5"/><path d="M12 5 V12 L16 14" stroke="#ffe066" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Timer
+            </button>
+            <button class="ui-element-btn">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="3" stroke="#ffe066" stroke-width="1.5"/><rect x="5" y="5" width="6" height="6" rx="1" fill="#ffe066" opacity="0.3"/><rect x="13" y="5" width="6" height="6" rx="1" fill="#ffe066" opacity="0.3"/><rect x="5" y="13" width="6" height="6" rx="1" fill="#ffe066" opacity="0.3"/></svg>
+              Inventory
+            </button>
+          </div>
+        </div>
+        <div class="insp-section">
+          <div class="insp-title"><svg viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><rect x="3" y="4" width="6" height="4" rx="1" fill="currentColor" opacity="0.3"/></svg> Menus</div>
+          <div class="ui-element-grid">
+            <button class="ui-element-btn">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="#ffe066" opacity="0.1" stroke="#ffe066" stroke-width="1.5"/><text x="12" y="10" text-anchor="middle" fill="#ffe066" font-size="6" font-weight="bold">PAUSE</text><line x1="7" y1="14" x2="17" y2="14" stroke="#ffe066" stroke-width="0.8"/><text x="12" y="19" text-anchor="middle" fill="#ffe066" font-size="5">Resume | Quit</text></svg>
+              Pause Menu
+            </button>
+            <button class="ui-element-btn">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" fill="#ffe066" opacity="0.1" stroke="#ffe066" stroke-width="1.5"/><text x="12" y="13" text-anchor="middle" fill="#ffe066" font-size="8" font-weight="bold">★</text><text x="12" y="19" text-anchor="middle" fill="#ffe066" font-size="5">LEVEL CLEAR</text></svg>
+              Win Screen
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Bottom Panel: Quick Add + Tilemap + Console -->
+    <footer id="bottom-panel">
+      <div class="bottom-tabs">
+        <button class="bottom-tab active" data-btab="quick-add">Quick Add</button>
+        <button class="bottom-tab" data-btab="tilemap">Tilemap Editor</button>
+        <button class="bottom-tab" data-btab="modeler">3D Modeler</button>
+        <button class="bottom-tab" data-btab="console">Console</button>
+      </div>
+
+      <!-- Quick Add -->
+      <div class="bottom-tab-content active" id="btab-quick-add">
+        <div class="palette-items">
+          <button class="palette-btn" data-type="platform"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="14" width="20" height="6" rx="2" fill="#4ee6a0"/><rect x="2" y="12" width="20" height="3" rx="1" fill="#6bff8a" opacity="0.4"/></svg><span>Platform</span></button>
+          <button class="palette-btn" data-type="character"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#4da8ff"/><rect x="8" y="12" width="8" height="7" rx="3" fill="#4da8ff"/><circle cx="10.5" cy="7.5" r="1" fill="white"/><circle cx="13.5" cy="7.5" r="1" fill="white"/></svg><span>Character</span></button>
+          <button class="palette-btn" data-type="star"><svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 14.5,9 22,9 16,13.5 18,21 12,16.5 6,21 8,13.5 2,9 9.5,9" fill="#ffe066"/></svg><span>Star</span></button>
+          <button class="palette-btn" data-type="tree"><svg viewBox="0 0 24 24" fill="none"><rect x="10" y="16" width="4" height="6" rx="1" fill="#8b7355"/><polygon points="12,3 4,16 20,16" fill="#4ee6a0"/><polygon points="12,7 6,14 18,14" fill="#3cd48e"/></svg><span>Tree</span></button>
+          <button class="palette-btn" data-type="enemy"><svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="16" rx="8" ry="5" fill="#ff5568"/><circle cx="9" cy="14" r="2" fill="white"/><circle cx="15" cy="14" r="2" fill="white"/><circle cx="9.5" cy="14.5" r="1" fill="#222"/><circle cx="15.5" cy="14.5" r="1" fill="#222"/></svg><span>Enemy</span></button>
+          <button class="palette-btn" data-type="light"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="10" r="5" fill="#ffe066" opacity="0.3"/><circle cx="12" cy="10" r="3" fill="#ffe066"/></svg><span>Light</span></button>
+          <button class="palette-btn" data-type="spawn"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="18" r="4" fill="#4ee6a0" opacity="0.2"/><polygon points="12,4 9,14 15,14" fill="#4ee6a0"/></svg><span>Spawn</span></button>
+          <button class="palette-btn" data-type="trigger"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" fill="#4da8ff" opacity="0.15" stroke="#4da8ff" stroke-width="1.5" stroke-dasharray="3 2"/></svg><span>Trigger</span></button>
+          <button class="palette-btn" data-type="camera"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="14" height="10" rx="2" stroke="#a86bff" stroke-width="1.5"/><polygon points="17,10 22,7 22,17 17,14" fill="#a86bff"/></svg><span>Camera</span></button>
+          <button class="palette-btn" data-type="audio-source"><svg viewBox="0 0 24 24" fill="none"><path d="M4 8 H6 L10 4 V20 L6 16 H4 C3.4 16 3 15.6 3 15 V9 C3 8.4 3.4 8 4 8 Z" fill="#ffa64d"/><path d="M13 8 C14.5 9.5 14.5 14.5 13 16" stroke="#ffa64d" stroke-width="1.5" stroke-linecap="round"/><path d="M16 6 C18.5 8.5 18.5 15.5 16 18" stroke="#ffa64d" stroke-width="1.5" stroke-linecap="round"/></svg><span>Audio Src</span></button>
+        </div>
+      </div>
+
+      <!-- Tilemap Editor -->
+      <div class="bottom-tab-content" id="btab-tilemap">
+        <div class="tilemap-content">
+          <div class="tilemap-palette">
+            <div class="tile-swatch selected" style="background:#4a8f3f;" title="Grass"></div>
+            <div class="tile-swatch" style="background:#8b7355;" title="Dirt"></div>
+            <div class="tile-swatch" style="background:#6b6b6b;" title="Stone"></div>
+            <div class="tile-swatch" style="background:#4d7ec4;" title="Water"></div>
+            <div class="tile-swatch" style="background:#c4a84d;" title="Sand"></div>
+            <div class="tile-swatch" style="background:#8b4513;" title="Wood"></div>
+            <div class="tile-swatch" style="background:#2d2d2d;" title="Dark Stone"></div>
+            <div class="tile-swatch" style="background:#ff5568;" title="Lava"></div>
+            <div class="tile-swatch" style="background:#88ddff;" title="Ice"></div>
+            <div class="tile-swatch" style="background:transparent;border-style:dashed;" title="Eraser"></div>
+          </div>
+          <div class="tilemap-tools">
+            <div class="tilemap-toolbar">
+              <button class="tool-btn active" title="Paint"><svg viewBox="0 0 16 16" fill="none"><path d="M3 13 L11 5 L13 7 L5 15 H3 Z" stroke="currentColor" stroke-width="1.2"/><path d="M11 5 L12 2 L14 4 L13 7" stroke="currentColor" stroke-width="1.2"/></svg></button>
+              <button class="tool-btn" title="Fill"><svg viewBox="0 0 16 16" fill="none"><path d="M3 10 L8 5 L11 8 L6 13 Z" stroke="currentColor" stroke-width="1.2"/><path d="M12 9 C14 10 14 13 12 14 C11 13 12 11 12 9 Z" fill="currentColor"/></svg></button>
+              <button class="tool-btn" title="Eyedropper"><svg viewBox="0 0 16 16" fill="none"><path d="M10 2 L14 6 L6 14 H2 V10 Z" stroke="currentColor" stroke-width="1.2"/></svg></button>
+              <button class="tool-btn" title="Rectangle"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 1"/></svg></button>
+              <div class="separator"></div>
+              <span style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">16 × 12 · 1u cells</span>
+            </div>
+            <div class="tilemap-grid-area">
+              <div class="tilemap-grid" id="tilemap-grid" style="grid-template-columns:repeat(16,28px);grid-template-rows:repeat(8,28px);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3D Modeler -->
+      <div class="bottom-tab-content" id="btab-modeler">
+        <div style="display:flex;flex:1;overflow:hidden;">
+          <!-- Modeler sidebar: model list + primitives -->
+          <div style="width:200px;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:8px;border-bottom:1px solid var(--border);display:flex;gap:4px;">
+              <button class="footer-btn" id="btn-new-model" style="flex:1;padding:5px 8px;font-size:10px;">+ New Model</button>
+              <button class="footer-btn" id="btn-import-model" style="width:60px;padding:5px 8px;font-size:10px;">Import</button>
+            </div>
+            <div id="model-list" style="flex:1;overflow-y:auto;padding:6px;">
+              <div style="text-align:center;padding:20px 10px;color:var(--text-dim);font-size:11px;font-style:italic;">No models yet. Click "+ New Model" or use a preset below.</div>
+            </div>
+            <div style="padding:8px;border-top:1px solid var(--border);">
+              <div style="font-size:10px;font-weight:700;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Presets</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+                <button class="footer-btn" data-preset="house" style="font-size:10px;padding:4px;">House</button>
+                <button class="footer-btn" data-preset="tree" style="font-size:10px;padding:4px;">Tree</button>
+                <button class="footer-btn" data-preset="vehicle" style="font-size:10px;padding:4px;">Vehicle</button>
+                <button class="footer-btn" data-preset="sword" style="font-size:10px;padding:4px;">Sword</button>
+                <button class="footer-btn" data-preset="gem" style="font-size:10px;padding:4px;">Gem</button>
+              </div>
+            </div>
+          </div>
+          <!-- Modeler main: primitives toolbar + parts list -->
+          <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:4px;padding:6px 10px;border-bottom:1px solid var(--border);">
+              <span style="font-size:10px;font-weight:700;color:var(--text-dim);margin-right:8px;">ADD:</span>
+              <button class="tool-btn" data-prim="box" title="Box"><svg viewBox="0 0 16 16" fill="none"><rect x="3" y="3" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.2"/></svg></button>
+              <button class="tool-btn" data-prim="sphere" title="Sphere"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.2"/></svg></button>
+              <button class="tool-btn" data-prim="cylinder" title="Cylinder"><svg viewBox="0 0 16 16" fill="none"><ellipse cx="8" cy="4" rx="4.5" ry="2" stroke="currentColor" stroke-width="1.2"/><line x1="3.5" y1="4" x2="3.5" y2="12" stroke="currentColor" stroke-width="1.2"/><line x1="12.5" y1="4" x2="12.5" y2="12" stroke="currentColor" stroke-width="1.2"/><ellipse cx="8" cy="12" rx="4.5" ry="2" stroke="currentColor" stroke-width="1.2"/></svg></button>
+              <button class="tool-btn" data-prim="cone" title="Cone"><svg viewBox="0 0 16 16" fill="none"><polygon points="8,2 3,13 13,13" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button>
+              <button class="tool-btn" data-prim="torus" title="Torus"><svg viewBox="0 0 16 16" fill="none"><ellipse cx="8" cy="8" rx="6" ry="3" stroke="currentColor" stroke-width="1.2"/><ellipse cx="8" cy="8" rx="2.5" ry="1" stroke="currentColor" stroke-width="0.8" opacity="0.5"/></svg></button>
+              <button class="tool-btn" data-prim="plane" title="Plane"><svg viewBox="0 0 16 16" fill="none"><polygon points="2,10 8,4 14,10 8,14" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></button>
+              <div class="separator"></div>
+              <button class="tool-btn" id="btn-merge-model" title="Merge All Parts"><svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M7 4 L12 4 L12 9" stroke="currentColor" stroke-width="1" stroke-dasharray="2 1"/></svg></button>
+              <button class="tool-btn" id="btn-model-to-prefab" title="Save as Prefab" style="color:var(--purple);"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2.5" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="3" fill="currentColor"/></svg></button>
+              <button class="tool-btn" id="btn-export-model" title="Export .novamodel"><svg viewBox="0 0 16 16" fill="none"><rect x="2" y="6" width="12" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><path d="M8 1 V9 M5 4 L8 1 L11 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+            <div id="modeler-parts-list" style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;">
+              <div style="width:100%;text-align:center;padding:16px;color:var(--text-dim);font-size:11px;font-style:italic;">Select or create a model, then add primitives to build it.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Console -->
+      <div class="bottom-tab-content" id="btab-console">
+        <div class="console-content">
+          <div id="console-output">
+            <div class="log">[NovaStar] Engine v0.3.0 initialized</div>
+            <div class="log">[NovaStar] Scene "Level_01" loaded (7 entities)</div>
+            <div class="result">&gt; player.position → Vector3(0.00, 5.00, 0.00)</div>
+          </div>
+          <div class="console-input-row">
+            <span class="prompt">&gt;</span>
+            <input type="text" id="console-input" placeholder="Type NovaScript here..." spellcheck="false" autocomplete="off">
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Status Bar -->
+  <div id="status-bar">
+    <div class="status-item"><span class="status-dot green"></span> Ready</div>
+    <div class="status-item">Scene: Level_01</div>
+    <div class="status-item">7 entities</div>
+    <div class="status-item">4 prefabs</div>
+    <div class="status-item" style="margin-left:auto;">NovaStar Engine v0.3.0</div>
+  </div>
+</div>
+
+<!-- ===== INTERACTIVE LOGIC ===== -->
+<script>
+(function() {
+  // === Welcome Screen ===
+  const welcome = document.getElementById('welcome-screen');
+  const templateSection = document.getElementById('template-section');
+  const recentSection = document.getElementById('recent-section');
+  
+  document.querySelectorAll('.welcome-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.welcome-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.wtab;
+      templateSection.style.display = target === 'templates' ? 'grid' : 'none';
+      recentSection.classList.toggle('visible', target === 'recent');
+    });
+  });
+
+  welcome.addEventListener('click', e => {
+    let card = e.target;
+    while (card && !card.classList.contains('template-card') && !card.classList.contains('recent-item')) card = card.parentElement;
+    if (!card) return;
+    const template = card.dataset?.template || 'recent';
+    window.__novastarTemplate = template;
+    welcome.classList.add('hidden');
+    setTimeout(() => welcome.style.display = 'none', 500);
+  });
+
+  // === Tab Systems ===
+  function setupTabs(tabSelector, contentPrefix) {
+    document.querySelectorAll(tabSelector).forEach(tab => {
+      tab.addEventListener('click', () => {
+        const attr = tab.dataset.ltab || tab.dataset.rtab || tab.dataset.btab;
+        const parent = tab.parentElement;
+        parent.querySelectorAll(tabSelector.split(' ').pop()).forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const container = parent.parentElement;
+        container.querySelectorAll(`[id^="${contentPrefix}"]`).forEach(c => c.classList.remove('active'));
+        const target = document.getElementById(`${contentPrefix}${attr}`);
+        if (target) target.classList.add('active');
+      });
+    });
+  }
+  setupTabs('#left-panel .left-tab', 'ltab-');
+  setupTabs('#right-panel .right-tab', 'rtab-');
+  setupTabs('#bottom-panel .bottom-tab', 'btab-');
+
+  // === Tool Selection ===
+  document.querySelectorAll('[data-tool]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-tool]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // === Hierarchy Selection ===
+  document.querySelectorAll('.h-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.h-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+    });
+    item.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      item.click();
+      const menu = document.getElementById('context-menu');
+      menu.style.left = e.clientX + 'px';
+      menu.style.top = e.clientY + 'px';
+      menu.classList.add('visible');
+    });
+  });
+  document.addEventListener('click', () => document.getElementById('context-menu').classList.remove('visible'));
+
+  // === Tilemap Grid ===
+  const grid = document.getElementById('tilemap-grid');
+  if (grid) {
+    let selectedColor = '#4a8f3f';
+    let painting = false;
+    for (let i = 0; i < 128; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'tilemap-cell';
+      cell.addEventListener('mousedown', () => { painting = true; cell.style.background = selectedColor; });
+      cell.addEventListener('mouseenter', () => { if (painting) cell.style.background = selectedColor; });
+      grid.appendChild(cell);
+    }
+    document.addEventListener('mouseup', () => painting = false);
+    document.querySelectorAll('.tile-swatch').forEach(s => {
+      s.addEventListener('click', () => {
+        document.querySelectorAll('.tile-swatch').forEach(x => x.classList.remove('selected'));
+        s.classList.add('selected');
+        selectedColor = s.style.background === 'transparent' ? 'var(--bg-surface)' : s.style.background;
+      });
+    });
+  }
+
+  // === Project Modal ===
+  const modal = document.getElementById('project-modal');
+  document.getElementById('btn-project')?.addEventListener('click', () => modal.classList.add('visible'));
+  document.getElementById('modal-close-btn')?.addEventListener('click', () => modal.classList.remove('visible'));
+  document.getElementById('modal-cancel-btn')?.addEventListener('click', () => modal.classList.remove('visible'));
+  document.getElementById('modal-save-btn')?.addEventListener('click', () => { modal.classList.remove('visible'); });
+  modal?.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('visible'); });
+
+  // Build targets
+  document.querySelectorAll('.build-target').forEach(t => {
+    t.addEventListener('click', () => t.classList.toggle('selected'));
+  });
+
+  // === Component Chips ===
+  document.querySelectorAll('.component-chip').forEach(chip => {
+    chip.addEventListener('click', () => chip.classList.toggle('expanded'));
+  });
+
+  // === Console ===
+  const consoleInput = document.getElementById('console-input');
+  const consoleOutput = document.getElementById('console-output');
+  consoleInput?.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && consoleInput.value.trim()) {
+      const cmd = consoleInput.value.trim();
+      const log = document.createElement('div');
+      log.className = 'result';
+      log.textContent = `> ${cmd}`;
+      consoleOutput.appendChild(log);
+      consoleInput.value = '';
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+  });
+
+  // === Keyboard Shortcuts ===
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    const keyMap = { v: 'select', g: 'move', r: 'rotate', s: 'scale' };
+    if (keyMap[e.key]) {
+      document.querySelectorAll('[data-tool]').forEach(b => b.classList.remove('active'));
+      document.querySelector(`[data-tool="${keyMap[e.key]}"]`)?.classList.add('active');
+    }
+  });
+})();
+</script>
+
+<!-- Editor module -->
+<script type="module" src="/src/editor/EditorApp.js"></script>
+</body>
+</html>

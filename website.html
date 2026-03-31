@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaStar Engine - Make Games, Not Excuses</title>
+  <meta name="description" content="Free open-source 3D game engine. Visual editor, 3D modeler, NovaScript, and a community that actually likes beginners.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#07080c;--bg2:#0e1017;--bg3:#13161f;--bg4:#1a1e2a;--bg5:#212636;
+      --brd:#222839;--brd2:#2d3348;
+      --t:#e8eaf2;--tb:#9ea3b8;--td:#5c6280;--tm:#3a3f56;
+      --g:#4ee6a0;--gg:rgba(78,230,160,.14);--gd:#1a3d2e;
+      --b:#4da8ff;--bg-b:rgba(77,168,255,.12);
+      --p:#a86bff;--bg-p:rgba(168,107,255,.1);
+      --o:#ff8a3d;--bg-o:rgba(255,138,61,.1);
+      --pk:#ff5e8a;--bg-pk:rgba(255,94,138,.1);
+      --y:#ffd84d;--bg-y:rgba(255,216,77,.1);
+      --r:#ff4757;
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--t);font-family:'DM Sans',sans-serif;line-height:1.7;overflow-x:hidden}
+    h1,h2,h3,h4{font-family:'Baloo 2',cursive;line-height:1.2}
+    a{color:var(--g);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:1100px;margin:0 auto;padding:0 28px}
+    .sec{padding:100px 0}
+    .badge{display:inline-flex;align-items:center;gap:7px;padding:5px 16px;border-radius:100px;font-size:13px;font-weight:700;border:1px solid}
+    .bg{background:var(--gg);color:var(--g);border-color:rgba(78,230,160,.2)}
+    .bb{background:var(--bg-b);color:var(--b);border-color:rgba(77,168,255,.2)}
+    .bo{background:var(--bg-o);color:var(--o);border-color:rgba(255,138,61,.2)}
+    .bp{background:var(--bg-p);color:var(--p);border-color:rgba(168,107,255,.2)}
+    .bpk{background:var(--bg-pk);color:var(--pk);border-color:rgba(255,94,138,.2)}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:12px;font-size:15px;font-weight:700;font-family:inherit;text-decoration:none!important;cursor:pointer;transition:all .2s;border:none}
+    .btn-g{background:var(--g);color:var(--bg)}
+    .btn-g:hover{background:#6bf0b6;transform:translateY(-2px);box-shadow:0 8px 30px rgba(78,230,160,.3)}
+    .btn-o{background:var(--o);color:#fff}
+    .btn-o:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,138,61,.3)}
+    .btn-pk{background:linear-gradient(135deg,var(--o),var(--pk));color:#fff}
+    .btn-pk:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,94,138,.3)}
+    .btn-out{background:transparent;border:2px solid var(--brd);color:var(--t)}
+    .btn-out:hover{border-color:var(--td);background:rgba(255,255,255,.03)}
+    .btn svg{width:18px;height:18px}
+    .reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+    .reveal.vis{opacity:1;transform:translateY(0)}
+
+    /* ===== NAV ===== */
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:64px;background:rgba(7,8,12,.82);backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--brd)}
+    .nav-in{max-width:1100px;margin:0 auto;padding:0 28px;height:100%;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{font-family:'Baloo 2',cursive;font-size:22px;font-weight:800;color:var(--g);text-decoration:none!important;display:flex;align-items:center;gap:10px}
+    .nav-brand svg{width:26px;height:26px}
+    .nav-links{display:flex;align-items:center;gap:4px}
+    .nav-link{padding:7px 14px;border-radius:8px;font-size:14px;font-weight:600;color:var(--tb);text-decoration:none!important;transition:all .15s}
+    .nav-link:hover{color:var(--t);background:rgba(255,255,255,.04)}
+    .nav-link.active{color:var(--g);background:var(--gg)}
+    .nav-auth{display:flex;align-items:center;gap:8px;margin-left:12px}
+    .nav-user{display:flex;align-items:center;gap:8px;padding:5px 14px 5px 8px;border-radius:10px;background:var(--bg3);border:1px solid var(--brd);font-size:13px;font-weight:600;color:var(--tb);cursor:pointer;transition:all .15s}
+    .nav-user:hover{border-color:var(--g);color:var(--t)}
+    .nav-user .avatar{width:26px;height:26px;border-radius:7px;background:var(--gg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--g)}
+
+    /* ===== PAGES (SPA routing) ===== */
+    .page{display:none;min-height:calc(100vh - 64px);padding-top:64px}
+    .page.active{display:block}
+
+    /* ===== HERO ===== */
+    .hero{padding:100px 0 80px;text-align:center;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:1000px;height:1000px;background:radial-gradient(circle,rgba(78,230,160,.07) 0%,rgba(77,168,255,.03) 40%,transparent 70%);pointer-events:none}
+    .stars-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+    .star{position:absolute;border-radius:50%;opacity:0;animation:twinkle 4s ease-in-out infinite}
+    @keyframes twinkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:.8;transform:scale(1)}}
+    .hero h1{font-size:clamp(38px,5.5vw,68px);font-weight:800;margin-bottom:16px;position:relative;z-index:1}
+    .hero h1 .gr{background:linear-gradient(135deg,#4ee6a0 0%,#4da8ff 45%,#a86bff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero .sub{font-size:clamp(15px,2vw,19px);color:var(--tb);max-width:620px;margin:0 auto 36px;position:relative;z-index:1}
+    .hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+
+    /* ===== SVG ILLUSTRATIONS ===== */
+    .illust{display:block;margin:0 auto}
+
+    /* ===== FEATURE CARDS ===== */
+    .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+    .feat{background:var(--bg2);border:1px solid var(--brd);border-radius:16px;padding:28px 24px;transition:all .25s;position:relative;overflow:hidden}
+    .feat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--g),transparent);opacity:0;transition:opacity .3s}
+    .feat:hover{border-color:var(--brd2);transform:translateY(-4px)}.feat:hover::before{opacity:1}
+    .feat-ic{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+    .feat-ic svg{width:24px;height:24px}
+    .feat h3{font-size:18px;margin-bottom:8px}
+    .feat p{font-size:14px;color:var(--tb);line-height:1.6}
+
+    /* ===== EVENT SECTION ===== */
+    .event-card{background:var(--bg2);border:1px solid rgba(255,138,61,.2);border-radius:24px;padding:48px;position:relative;overflow:hidden}
+    .event-card::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(255,138,61,.07) 0%,transparent 70%);pointer-events:none}
+    .cd-row{display:flex;gap:12px;flex-shrink:0}
+    .cd-block{text-align:center;background:var(--bg3);border:1px solid var(--brd);border-radius:12px;padding:14px 18px;min-width:72px}
+    .cd-block .n{font-family:'Baloo 2',cursive;font-size:28px;font-weight:800;color:var(--o);line-height:1}
+    .cd-block .l{font-size:11px;color:var(--td);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+    .timeline{position:relative;margin:40px 0;padding-left:32px}
+    .timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--brd)}
+    .tl-item{position:relative;padding-bottom:28px}
+    .tl-item::before{content:'';position:absolute;left:-28px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--o);border:3px solid var(--bg)}
+    .tl-item.now::before{box-shadow:0 0 0 4px var(--bg-o)}
+    .tl-date{font-size:12px;font-weight:700;color:var(--o);margin-bottom:4px}
+    .tl-title{font-size:16px;font-weight:700;margin-bottom:4px}
+    .tl-desc{font-size:13px;color:var(--tb)}
+
+    /* ===== TEAM SIGNUP ===== */
+    .form-group{margin-bottom:18px}
+    .form-label{display:block;font-size:12px;font-weight:700;color:var(--td);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+    .form-input{width:100%;padding:11px 16px;border-radius:10px;background:var(--bg3);border:1px solid var(--brd);color:var(--t);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .15s}
+    .form-input:focus{border-color:var(--g);box-shadow:0 0 0 3px var(--gg)}
+    .form-input::placeholder{color:var(--td)}
+    .form-textarea{resize:vertical;min-height:80px}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .form-hint{font-size:11px;color:var(--td);margin-top:4px}
+    .member-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 12px 4px 8px;border-radius:8px;background:var(--bg-p);border:1px solid rgba(168,107,255,.2);color:var(--p);font-size:12px;font-weight:700;margin:3px}
+    .member-tag .x{cursor:pointer;opacity:.6;font-size:14px}.member-tag .x:hover{opacity:1}
+
+    /* ===== COMMUNITY FORUM ===== */
+    .forum-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+    .forum-tabs{display:flex;gap:4px}
+    .forum-tab{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;color:var(--tb);cursor:pointer;transition:all .15s;background:none;border:none;font-family:inherit}
+    .forum-tab:hover{color:var(--t);background:rgba(255,255,255,.04)}
+    .forum-tab.active{color:var(--g);background:var(--gg)}
+    .post-card{background:var(--bg2);border:1px solid var(--brd);border-radius:14px;padding:20px 24px;margin-bottom:10px;transition:all .15s;cursor:pointer}
+    .post-card:hover{border-color:var(--brd2);transform:translateX(4px)}
+    .post-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .post-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0}
+    .post-meta{font-size:12px;color:var(--td)}
+    .post-title{font-size:16px;font-weight:700;margin-bottom:6px}
+    .post-body{font-size:14px;color:var(--tb);line-height:1.6}
+    .post-tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+    .post-tag{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}
+    .reply-box{background:var(--bg3);border:1px solid var(--brd);border-radius:12px;padding:16px;margin-top:12px}
+    .reply{padding:12px 0;border-bottom:1px solid var(--brd);display:flex;gap:12px;align-items:flex-start}
+    .reply:last-child{border-bottom:none}
+
+    /* ===== AUTH MODAL ===== */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+    .modal-bg.open{display:flex}
+    .modal{background:var(--bg3);border:1px solid var(--brd);border-radius:20px;width:420px;max-width:95vw;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.5);animation:modalIn .25s ease}
+    @keyframes modalIn{from{opacity:0;transform:translateY(12px) scale(.97)}}
+    .modal-head{padding:24px 28px 0;display:flex;align-items:center;justify-content:space-between}
+    .modal-head h3{font-size:22px}
+    .modal-x{width:32px;height:32px;border-radius:8px;background:none;border:none;color:var(--td);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .12s}
+    .modal-x:hover{background:var(--bg5);color:var(--t)}
+    .modal-body{padding:20px 28px 28px}
+    .modal-switch{text-align:center;font-size:13px;color:var(--td);margin-top:16px}
+    .modal-switch a{color:var(--g);cursor:pointer;font-weight:700}
+    .tab-btns{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);border-radius:10px;padding:4px}
+    .tab-btn{flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;color:var(--td);transition:all .15s;background:none;border:none;font-family:inherit}
+    .tab-btn.active{background:var(--bg4);color:var(--g);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+
+    /* ===== SHOWCASE / GALLERY ===== */
+    .showcase-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
+    .showcase-card{background:var(--bg2);border:1px solid var(--brd);border-radius:16px;overflow:hidden;transition:all .25s}
+    .showcase-card:hover{border-color:var(--brd2);transform:translateY(-4px)}
+    .showcase-thumb{height:160px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    .showcase-info{padding:18px 20px}
+    .showcase-info h4{font-size:15px;margin-bottom:4px}
+    .showcase-info p{font-size:12px;color:var(--td)}
+
+    /* ===== STEPS ===== */
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
+    .step{background:var(--bg2);border:1px solid var(--brd);border-radius:16px;padding:28px 24px;text-align:center;transition:all .2s}
+    .step:hover{border-color:var(--g);transform:translateY(-2px)}
+    .step-n{width:44px;height:44px;border-radius:12px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-family:'Baloo 2',cursive;font-size:20px;font-weight:800;background:var(--gg);color:var(--g);border:1px solid rgba(78,230,160,.2)}
+    .step h3{font-size:17px;margin-bottom:8px}
+    .step p{font-size:13px;color:var(--tb)}
+    .step code{background:var(--bg3);padding:2px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--g)}
+
+    /* ===== DOWNLOADS ===== */
+    .dl-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
+    .dl-card{background:var(--bg2);border:1px solid var(--brd);border-radius:16px;padding:32px 24px;text-align:center;transition:all .2s}
+    .dl-card:hover{border-color:var(--b);transform:translateY(-3px)}
+    .dl-card svg{width:40px;height:40px;color:var(--b);margin-bottom:16px}
+    .dl-card h3{font-size:18px;margin-bottom:6px}
+    .dl-card p{font-size:13px;color:var(--td);margin-bottom:20px}
+    .dl-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 24px;border-radius:10px;background:var(--bg-b);border:1px solid rgba(77,168,255,.2);color:var(--b);font-size:13px;font-weight:700;text-decoration:none!important;transition:all .2s;font-family:inherit}
+    .dl-btn:hover{background:rgba(77,168,255,.2);border-color:var(--b)}
+
+    /* ===== FAQ ===== */
+    .faq-item{border-bottom:1px solid var(--brd)}
+    .faq-q{display:flex;align-items:center;justify-content:space-between;padding:20px 0;font-size:16px;font-weight:700;cursor:pointer;color:var(--t);transition:color .15s}
+    .faq-q:hover{color:var(--g)}
+    .faq-q .arr{font-size:20px;color:var(--td);transition:transform .2s}
+    .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+    .faq-a-in{padding:0 0 20px;font-size:14px;color:var(--tb);line-height:1.7}
+    .faq-item.open .faq-a{max-height:400px}
+    .faq-item.open .arr{transform:rotate(45deg)}
+
+    /* ===== EVENTS CALENDAR ===== */
+    .ev-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:32px}
+    .ev-card{background:var(--bg2);border:1px solid var(--brd);border-radius:16px;padding:24px;transition:all .2s;position:relative;overflow:hidden}
+    .ev-card:hover{border-color:var(--brd2);transform:translateY(-2px)}
+    .ev-card.featured{border-color:rgba(255,138,61,.3)}
+    .ev-card.featured::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--o),var(--pk))}
+    .ev-date{font-size:12px;font-weight:700;color:var(--o);margin-bottom:8px}
+    .ev-card h3{font-size:18px;margin-bottom:6px}
+    .ev-card p{font-size:13px;color:var(--tb);line-height:1.5}
+    .ev-status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;margin-top:12px}
+    .ev-live{background:var(--bg-o);color:var(--o)}
+    .ev-soon{background:var(--bg-b);color:var(--b)}
+    .ev-done{background:rgba(255,255,255,.04);color:var(--td)}
+
+    /* ===== PROFILE PAGE ===== */
+    .profile-banner{height:180px;border-radius:20px;position:relative;overflow:hidden;margin-bottom:-50px}
+    .profile-banner-inner{width:100%;height:100%;background:linear-gradient(135deg,var(--g),var(--b));transition:background .3s}
+    .profile-avatar-wrap{position:relative;z-index:2;display:flex;align-items:flex-end;gap:20px;padding:0 32px;margin-bottom:20px}
+    .profile-avatar{width:96px;height:96px;border-radius:20px;border:4px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:800;font-family:'Baloo 2',cursive;transition:background .3s}
+    .profile-info h2{font-size:26px;margin-bottom:2px}
+    .profile-info .profile-handle{font-size:13px;color:var(--td)}
+    .profile-badges{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+    .profile-badge-item{padding:4px 12px;border-radius:8px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px}
+    .profile-stats{display:flex;gap:32px;margin:24px 0;padding:20px 0;border-top:1px solid var(--brd);border-bottom:1px solid var(--brd)}
+    .profile-stat{text-align:center}.profile-stat .ps-num{font-family:'Baloo 2',cursive;font-size:24px;font-weight:800}.profile-stat .ps-label{font-size:12px;color:var(--td)}
+    .profile-section{margin-bottom:28px}
+    .profile-section h3{font-size:18px;margin-bottom:14px}
+    .profile-bio{font-size:14px;color:var(--tb);line-height:1.7;padding:16px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px}
+    .edit-section{background:var(--bg2);border:1px solid var(--brd);border-radius:16px;padding:24px;margin-bottom:20px}
+    .edit-section h3{font-size:16px;margin-bottom:16px}
+    .color-picker-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .color-swatch{width:36px;height:36px;border-radius:10px;cursor:pointer;border:3px solid transparent;transition:all .15s}
+    .color-swatch:hover{transform:scale(1.1)}
+    .color-swatch.active{border-color:#fff;box-shadow:0 0 0 2px var(--g)}
+    .cosmetic-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .cosmetic-item{padding:12px;border-radius:12px;background:var(--bg3);border:1px solid var(--brd);text-align:center;cursor:pointer;transition:all .15s;font-size:24px}
+    .cosmetic-item:hover{border-color:var(--g);transform:translateY(-2px)}
+    .cosmetic-item.active{border-color:var(--g);background:var(--gg)}
+    .cosmetic-item .ci-label{font-size:10px;color:var(--td);margin-top:4px;display:block}
+
+    /* ===== FOOTER ===== */
+    footer{padding:60px 0;border-top:1px solid var(--brd);text-align:center}
+    footer p{font-size:13px;color:var(--td)}
+    .footer-links{display:flex;gap:24px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+    .footer-links a{color:var(--tb);font-size:14px;font-weight:600;text-decoration:none!important;transition:color .15s}
+    .footer-links a:hover{color:var(--g)}
+
+    /* ===== RESPONSIVE ===== */
+    @media(max-width:900px){
+      .feat-grid,.steps,.dl-cards,.showcase-grid{grid-template-columns:1fr}
+      .ev-grid{grid-template-columns:1fr}
+      .form-row{grid-template-columns:1fr}
+      .nav-links{display:none}
+      .cd-row{justify-content:center;flex-wrap:wrap}
+    }
+    @media(min-width:901px) and (max-width:1100px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
+
+    /* ===== TOAST NOTIFICATIONS ===== */
+    .toast{position:fixed;bottom:24px;right:24px;z-index:999;padding:14px 24px;border-radius:12px;font-size:14px;font-weight:600;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(100px);opacity:0;transition:all .3s ease;pointer-events:none}
+    .toast.show{transform:translateY(0);opacity:1}
+    .toast-ok{background:var(--gd);border:1px solid rgba(78,230,160,.3);color:var(--g)}
+    .toast-err{background:#2a1520;border:1px solid rgba(255,71,87,.3);color:var(--r)}
+  </style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav>
+  <div class="nav-in">
+    <a href="#" class="nav-brand" onclick="goPage('home');return false">
+      <svg viewBox="0 0 26 26" fill="none"><polygon points="13,1 16,9.5 25,9.5 18,14.5 20.5,23 13,18 5.5,23 8,14.5 1,9.5 10,9.5" fill="#4ee6a0"/></svg>
+      NovaStar
+    </a>
+    <div class="nav-links">
+      <a href="#" class="nav-link active" data-page="home" onclick="goPage('home');return false">Home</a>
+      <a href="#" class="nav-link" data-page="events" onclick="goPage('events');return false">Events</a>
+      <a href="#" class="nav-link" data-page="community" onclick="goPage('community');return false">Community</a>
+      <a href="#" class="nav-link" data-page="learn" onclick="goPage('learn');return false">Learn</a>
+      <a href="#" class="nav-link" data-page="downloads" onclick="goPage('downloads');return false">Download</a>
+      <a href="https://github.com/JustyyDev/NovaStar-Engine" class="nav-link" target="_blank">GitHub</a>
+      <a href="#" class="nav-link" data-page="profile" onclick="goPage('profile');return false" id="nav-profile-link" style="display:none">Profile</a>
+    </div>
+    <div class="nav-auth" id="nav-auth">
+      <button class="btn btn-g" style="padding:8px 20px;font-size:13px;" onclick="openAuth('signup')">Sign Up</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== AUTH MODAL ===== -->
+<div class="modal-bg" id="auth-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="auth-title">Join NovaStar</h3>
+      <button class="modal-x" onclick="closeAuth()">x</button>
+    </div>
+    <div class="modal-body">
+      <div class="tab-btns">
+        <button class="tab-btn active" onclick="authTab('signup')">Sign Up</button>
+        <button class="tab-btn" onclick="authTab('login')">Log In</button>
+      </div>
+      <div id="auth-signup">
+        <button class="btn btn-out" style="width:100%;justify-content:center;margin-bottom:16px;border-color:var(--brd2)" onclick="doGoogleSignIn()">
+          <svg viewBox="0 0 18 18" width="18" height="18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+          Sign in with Google
+        </button>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="flex:1;height:1px;background:var(--brd)"></div><span style="font-size:12px;color:var(--td)">or use email</span><div style="flex:1;height:1px;background:var(--brd)"></div></div>
+        <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="su-name" placeholder="CoolGameDev42"></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="su-email" type="email" placeholder="you@example.com"></div>
+        <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="su-pass" type="password" placeholder="something you wont forget (hopefully)"></div>
+        <div class="form-group"><label class="form-label">Skill Level</label>
+          <select class="form-input" id="su-skill"><option value="beginner">Beginner (what's a variable?)</option><option value="intermediate">Intermediate (I've made a game or two)</option><option value="advanced">Advanced (I dream in code)</option></select>
+        </div>
+        <button class="btn btn-g" style="width:100%" onclick="doSignup()">Create Account</button>
+        <div class="form-hint" style="text-align:center;margin-top:12px">By signing up you agree to be awesome and make cool games.</div>
+      </div>
+      <div id="auth-login" style="display:none">
+        <button class="btn btn-out" style="width:100%;justify-content:center;margin-bottom:16px;border-color:var(--brd2)" onclick="doGoogleSignIn()">
+          <svg viewBox="0 0 18 18" width="18" height="18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+          Sign in with Google
+        </button>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="flex:1;height:1px;background:var(--brd)"></div><span style="font-size:12px;color:var(--td)">or use email</span><div style="flex:1;height:1px;background:var(--brd)"></div></div>
+        <div class="form-group"><label class="form-label">Email or Username</label><input class="form-input" id="li-email" placeholder="you@example.com"></div>
+        <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="li-pass" type="password" placeholder="your super secret password"></div>
+        <button class="btn btn-g" style="width:100%" onclick="doLogin()">Log In</button>
+        <div class="form-hint" style="text-align:center;margin-top:12px">Forgot your password? Try remembering harder. (jk, we're working on password reset)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ========================================= -->
+<!-- PAGE: HOME -->
+<!-- ========================================= -->
+<div class="page active" id="page-home">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="stars-bg" id="stars"></div>
+    <div class="wrap">
+      <span class="badge bg" style="margin-bottom:20px">Open Source & Free Forever</span>
+      <h1>Make Games,<br>Not <span class="gr">Excuses</span></h1>
+      <p class="sub">NovaStar is a free game engine for people who want to actually finish a game instead of spending 6 months picking one. Visual editor, 3D modeler, custom scripting. No PhD required.</p>
+      <div class="hero-actions">
+        <a onclick="goPage('downloads');return false" href="#" class="btn btn-g">
+          <svg viewBox="0 0 18 18" fill="none"><path d="M9 2V12M5 8L9 12L13 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 14H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Download v0.3.2
+        </a>
+        <a onclick="goPage('events');return false" href="#" class="btn btn-pk">Spring 2026 Game Jam</a>
+        <a href="https://github.com/JustyyDev/NovaStar-Engine" target="_blank" class="btn btn-out">
+          <svg viewBox="0 0 18 18" fill="none"><path d="M9 1C4.6 1 1 4.6 1 9c0 3.5 2.3 6.5 5.5 7.6.4.1.5-.2.5-.4v-1.4c-2.2.5-2.7-1.1-2.7-1.1-.4-.9-.9-1.2-.9-1.2-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.2 1.9.9 2.3.7.1-.5.3-.9.5-1.1-1.8-.2-3.7-.9-3.7-4 0-.9.3-1.6.8-2.2-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.2.8.6-.2 1.3-.3 2-.3s1.4.1 2 .3c1.5-1 2.2-.8 2.2-.8.4 1.1.2 1.9.1 2.1.5.6.8 1.3.8 2.2 0 3.1-1.9 3.8-3.7 4 .3.3.6.8.6 1.6v2.4c0 .2.1.5.6.4C14.7 15.5 17 12.5 17 9c0-4.4-3.6-8-8-8z" fill="currentColor"/></svg>
+          GitHub
+        </a>
+      </div>
+
+      <!-- Custom SVG illustration -->
+      <svg class="illust" viewBox="0 0 800 200" fill="none" style="margin-top:60px;max-width:700px;width:100%;opacity:.9">
+        <!-- ground -->
+        <rect x="0" y="160" width="800" height="40" rx="8" fill="#1a3d2e"/>
+        <rect x="0" y="155" width="800" height="10" rx="4" fill="#4ee6a0" opacity=".3"/>
+        <!-- platforms -->
+        <rect x="80" y="120" width="100" height="14" rx="7" fill="#4ee6a0"/>
+        <rect x="280" y="90" width="120" height="14" rx="7" fill="#4da8ff"/>
+        <rect x="520" y="110" width="90" height="14" rx="7" fill="#a86bff"/>
+        <!-- character -->
+        <circle cx="130" cy="105" r="12" fill="#4da8ff"/>
+        <rect x="122" y="107" width="16" height="12" rx="5" fill="#4da8ff"/>
+        <circle cx="127" cy="103" r="2.5" fill="#fff"/><circle cx="134" cy="103" r="2.5" fill="#fff"/>
+        <circle cx="127.5" cy="103.5" r="1.2" fill="#222"/><circle cx="134.5" cy="103.5" r="1.2" fill="#222"/>
+        <!-- stars -->
+        <polygon points="340,75 343,82 350,82 344,87 346,94 340,89 334,94 336,87 330,82 337,82" fill="#ffd84d"/>
+        <polygon points="560,95 562,100 568,100 563.5,103 565,108 560,105 555,108 556.5,103 552,100 558,100" fill="#ffd84d"/>
+        <!-- trees -->
+        <rect x="650" y="135" width="8" height="22" rx="2" fill="#8b7355"/>
+        <polygon points="654,100 636,140 672,140" fill="#4ee6a0"/>
+        <polygon points="654,110 640,135 668,135" fill="#3cb043"/>
+        <!-- enemy slime -->
+        <ellipse cx="460" cy="152" rx="18" ry="12" fill="#ff5e8a"/>
+        <circle cx="454" cy="148" r="3.5" fill="#fff"/><circle cx="466" cy="148" r="3.5" fill="#fff"/>
+        <circle cx="455" cy="149" r="1.8" fill="#222"/><circle cx="467" cy="149" r="1.8" fill="#222"/>
+        <!-- clouds -->
+        <ellipse cx="200" cy="40" rx="40" ry="14" fill="#1a1e2a"/><ellipse cx="180" cy="38" rx="24" ry="12" fill="#1a1e2a"/>
+        <ellipse cx="600" cy="30" rx="50" ry="16" fill="#1a1e2a"/><ellipse cx="575" cy="28" rx="28" ry="12" fill="#1a1e2a"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Why NovaStar -->
+  <section class="sec" style="padding-top:40px">
+    <div class="wrap">
+      <div class="reveal" style="text-align:center;margin-bottom:16px"><span class="badge bg">Why NovaStar?</span></div>
+      <h2 class="reveal" style="text-align:center;font-size:36px;margin-bottom:8px">Other engines made you read a 400-page manual.<br>We made ours fun.</h2>
+      <p class="reveal" style="text-align:center;color:var(--tb);max-width:580px;margin:0 auto">Look, we get it. Most game engines feel like they were designed by robots for robots. NovaStar was built for actual humans who want to make actual games.</p>
+      <div class="feat-grid">
+        <div class="feat reveal"><div class="feat-ic" style="background:var(--gg)"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="var(--g)" stroke-width="2"/><rect x="7" y="7" width="4" height="4" rx="1" fill="var(--g)"/></svg></div><h3>Visual Editor</h3><p>Drag stuff around. Click buttons. See your game take shape in real time. It's like playing with LEGOs but on a computer. (And nobody steps on them.)</p></div>
+        <div class="feat reveal"><div class="feat-ic" style="background:var(--bg-p)"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L20 7V17L12 22L4 17V7Z" stroke="var(--p)" stroke-width="2" fill="none"/></svg></div><h3>3D Modeler</h3><p>Make low-poly characters, houses, swords, whatever. Right inside the editor. No Blender degree needed. Your models become prefabs you can reuse everywhere.</p></div>
+        <div class="feat reveal"><div class="feat-ic" style="background:var(--bg-b)"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="6" height="6" rx="1" fill="var(--b)"/><rect x="10" y="2" width="6" height="6" rx="1" fill="var(--b)" opacity=".6"/><rect x="2" y="10" width="6" height="6" rx="1" fill="var(--b)" opacity=".6"/></svg></div><h3>Tilemap Editor</h3><p>Paint levels tile by tile. Grass, stone, water, lava (for when you want to be mean to your players). Collision is generated automatically.</p></div>
+        <div class="feat reveal"><div class="feat-ic" style="background:var(--bg-o)"><svg viewBox="0 0 24 24" fill="none"><path d="M4 8H6L10 4V20L6 16H4C3.4 16 3 15.6 3 15V9C3 8.4 3.4 8 4 8Z" fill="var(--o)"/><path d="M14 8C15.5 10 15.5 14 14 16" stroke="var(--o)" stroke-width="2" stroke-linecap="round"/></svg></div><h3>Audio</h3><p>Built-in sound effects that just work. Jump? Boing. Collect a coin? Sparkly chime. Or import your own WAV/MP3/OGG if you're fancy like that.</p></div>
+        <div class="feat reveal"><div class="feat-ic" style="background:var(--bg-pk)"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="var(--pk)" stroke-width="2"/><rect x="6" y="6" width="12" height="3" rx="1" fill="var(--pk)" opacity=".4"/></svg></div><h3>UI System</h3><p>Health bars, score counters, menus, the whole deal. Because what's a game without a way to tell the player they're losing?</p></div>
+        <div class="feat reveal"><div class="feat-ic" style="background:var(--bg-y)"><svg viewBox="0 0 24 24" fill="none"><path d="M4 18L8 4H16L20 18" stroke="var(--y)" stroke-width="2" stroke-linecap="round"/><path d="M7 14H17" stroke="var(--y)" stroke-width="2" stroke-linecap="round"/></svg></div><h3>NovaScript</h3><p>Our scripting language reads like normal English-ish code. If you can write "if player hits enemy, ouch" you're basically halfway there already.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Showcase -->
+  <section class="sec" style="padding-top:0">
+    <div class="wrap">
+      <div class="reveal" style="text-align:center;margin-bottom:16px"><span class="badge bp">Made With NovaStar</span></div>
+      <h2 class="reveal" style="text-align:center;font-size:32px;margin-bottom:8px">Games People Are Building</h2>
+      <p class="reveal" style="text-align:center;color:var(--tb);max-width:480px;margin:0 auto">Real projects from real people. Some beginners, some pros, all having fun.</p>
+      <div class="showcase-grid">
+        <div class="showcase-card reveal">
+          <div class="showcase-thumb" style="background:linear-gradient(135deg,#1a3d2e,#0e1017)">
+            <svg viewBox="0 0 200 120" fill="none" style="width:80%"><rect x="20" y="80" width="160" height="20" rx="4" fill="#4ee6a0" opacity=".4"/><circle cx="60" cy="65" r="12" fill="#4da8ff"/><polygon points="100,40 105,55 118,55 108,63 112,76 100,68 88,76 92,63 82,55 95,55" fill="#ffd84d"/><rect x="130" y="60" width="30" height="20" rx="3" fill="#a86bff" opacity=".5"/></svg>
+          </div>
+          <div class="showcase-info"><h4>Star Hopper</h4><p>3D platformer demo. Collect stars, dodge slimes, bounce on clouds.</p></div>
+        </div>
+        <div class="showcase-card reveal">
+          <div class="showcase-thumb" style="background:linear-gradient(135deg,#1a1a30,#0e1017)">
+            <svg viewBox="0 0 200 120" fill="none" style="width:80%"><rect x="10" y="10" width="180" height="100" rx="4" fill="#13161f" stroke="#4da8ff" stroke-width="1"/><rect x="20" y="20" width="20" height="20" fill="#4ee6a0" opacity=".6"/><rect x="45" y="20" width="20" height="20" fill="#8b7355" opacity=".6"/><rect x="20" y="45" width="20" height="20" fill="#4d7ec4" opacity=".6"/><rect x="45" y="45" width="20" height="20" fill="#4ee6a0" opacity=".6"/><circle cx="140" cy="60" r="10" fill="#4da8ff"/></svg>
+          </div>
+          <div class="showcase-info"><h4>Tiny Dungeon</h4><p>Top-down tilemap RPG. Explore, fight, find treasure.</p></div>
+        </div>
+        <div class="showcase-card reveal">
+          <div class="showcase-thumb" style="background:linear-gradient(135deg,#2a1520,#0e1017)">
+            <svg viewBox="0 0 200 120" fill="none" style="width:80%"><circle cx="100" cy="60" r="45" fill="#1a1e2a" stroke="#ff5e8a" stroke-width="1.5"/><circle cx="80" cy="50" r="8" fill="#4da8ff"/><circle cx="120" cy="70" r="8" fill="#ff5e8a"/><path d="M80 50 L120 70" stroke="#ffd84d" stroke-width="1" stroke-dasharray="4 3"/></svg>
+          </div>
+          <div class="showcase-info"><h4>Neon Arena</h4><p>Fast arena shooter. Dodge, shoot, survive. (The slimes are angry.)</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick CTA -->
+  <section class="sec" style="padding:60px 0;text-align:center">
+    <div class="wrap reveal">
+      <h2 style="font-size:32px;margin-bottom:12px">Ready to make something cool?</h2>
+      <p style="color:var(--tb);margin-bottom:24px">It takes about 5 minutes to go from "I want to make a game" to actually placing your first platform.</p>
+      <a onclick="goPage('learn');return false" href="#" class="btn btn-g">Start the Tutorial</a>
+    </div>
+  </section>
+</div>
+
+<!-- ========================================= -->
+<!-- PAGE: EVENTS -->
+<!-- ========================================= -->
+<div class="page" id="page-events">
+  <section class="sec">
+    <div class="wrap">
+      <div class="reveal" style="text-align:center;margin-bottom:16px"><span class="badge bo">Events & Game Jams</span></div>
+      <h2 class="reveal" style="text-align:center;font-size:36px;margin-bottom:8px">Upcoming Events</h2>
+      <p class="reveal" style="text-align:center;color:var(--tb);max-width:520px;margin:0 auto">Game jams, workshops, challenges. We try to run something every couple months so there's always a reason to make games.</p>
+
+      <div class="ev-grid" style="margin-top:40px">
+        <div class="ev-card featured reveal">
+          <div class="ev-date">April 14 - April 28, 2026</div>
+          <h3>Spring 2026 Game Development Race</h3>
+          <p>The big one. Two weeks to build a game with NovaStar. Solo or teams of up to 3. Community voting picks the winners. Four categories: Best Overall, Best Visuals, Most Creative, Best Beginner Project.</p>
+          <div class="ev-status ev-live">Signups Open</div>
+        </div>
+        <div class="ev-card reveal">
+          <div class="ev-date">June 2026 (TBA)</div>
+          <h3>Summer Speedrun Jam</h3>
+          <p>48-hour game jam. Theme announced at the start. Make something quick, make something weird, make something you're proud of. Speed is the name of the game.</p>
+          <div class="ev-status ev-soon">Coming Soon</div>
+        </div>
+        <div class="ev-card reveal">
+          <div class="ev-date">September 2026 (TBA)</div>
+          <h3>NovaStar Showcase</h3>
+          <p>Not a jam, just a show-and-tell. Submit your best NovaStar project (new or old) and we'll feature the coolest ones on the website and GitHub. Low pressure, high vibes.</p>
+          <div class="ev-status ev-soon">Planned</div>
+        </div>
+        <div class="ev-card reveal">
+          <div class="ev-date">December 2026 (TBA)</div>
+          <h3>Holiday Game Jam</h3>
+          <p>End-of-year game jam with a festive twist. Make a holiday-themed game, a cozy winter game, or just something that makes people happy. Hot chocolate optional but encouraged.</p>
+          <div class="ev-status ev-soon">Planned</div>
+        </div>
+      </div>
+
+      <!-- Spring 2026 details -->
+      <div class="event-card reveal" style="margin-top:48px" id="spring-jam">
+        <div style="display:flex;align-items:flex-start;gap:40px;margin-bottom:36px;flex-wrap:wrap">
+          <div style="flex:1;min-width:300px">
+            <span class="badge bo" style="margin-bottom:16px">Featured Event</span>
+            <h2 style="font-size:32px;margin-bottom:12px">Spring 2026 <span style="background:linear-gradient(135deg,var(--o),var(--pk));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Game Dev Race</span></h2>
+            <p style="color:var(--tb);line-height:1.7">Build a game in 2 weeks. Any skill level. Theme gets announced April 14. Ship something playable by April 28. That's it. No 50-page design docs, no investor pitches, just make a game and have fun doing it.</p>
+          </div>
+          <div class="cd-row" id="countdown">
+            <div class="cd-block"><div class="n" id="cd-d">--</div><div class="l">Days</div></div>
+            <div class="cd-block"><div class="n" id="cd-h">--</div><div class="l">Hours</div></div>
+            <div class="cd-block"><div class="n" id="cd-m">--</div><div class="l">Min</div></div>
+            <div class="cd-block"><div class="n" id="cd-s">--</div><div class="l">Sec</div></div>
+          </div>
+        </div>
+
+        <!-- Team Signup Form -->
+        <div style="background:var(--bg3);border:1px solid var(--brd);border-radius:16px;padding:28px;margin-bottom:28px" id="team-signup">
+          <h3 style="font-size:20px;margin-bottom:4px">Sign Up Your Team</h3>
+          <p style="font-size:13px;color:var(--td);margin-bottom:20px">Going solo? That's cool too. Just fill in your name and leave the teammates blank.</p>
+          <div class="form-group"><label class="form-label">Team Name</label><input class="form-input" id="team-name" placeholder="The Pixel Pushers"></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Your Name / Username</label><input class="form-input" id="team-leader" placeholder="YourName"></div>
+            <div class="form-group"><label class="form-label">Contact Email</label><input class="form-input" id="team-email" type="email" placeholder="you@email.com"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teammates (optional, max 2 more)</label>
+            <div id="team-members" style="margin-bottom:8px;min-height:24px"></div>
+            <div style="display:flex;gap:8px">
+              <input class="form-input" id="team-member-input" placeholder="Add a teammate's username" style="flex:1">
+              <button class="btn btn-out" style="padding:8px 16px;font-size:13px" onclick="addTeamMember()">Add</button>
+            </div>
+            <div class="form-hint">Just type their name and hit Add. You can have up to 3 people total (including you).</div>
+          </div>
+          <div class="form-group"><label class="form-label">Game Idea (optional, you can change it later)</label><textarea class="form-input form-textarea" id="team-idea" placeholder="A platformer where you play as a cat in space... or something. We're still figuring it out."></textarea></div>
+          <button class="btn btn-pk" style="width:100%" onclick="submitTeam()">Register for the Game Jam</button>
+        </div>
+        <div id="team-success" style="display:none;background:var(--gd);border:1px solid rgba(78,230,160,.2);border-radius:16px;padding:28px;text-align:center;margin-bottom:28px">
+          <h3 style="color:var(--g);margin-bottom:8px">You're in!</h3>
+          <p style="color:var(--tb)">Your team has been registered. The theme drops April 14 at noon UTC. Until then, get familiar with the engine.</p>
+          <div id="team-confirm-info" style="margin-top:16px;font-size:14px"></div>
+        </div>
+
+        <!-- Timeline -->
+        <h3 style="font-size:20px;margin-bottom:20px">Timeline</h3>
+        <div class="timeline">
+          <div class="tl-item now"><div class="tl-date">March 31 - April 13</div><div class="tl-title">Signups Open (you are here)</div><div class="tl-desc">Register, download NovaStar, try the tutorial, experiment with templates. Get comfy with the tools.</div></div>
+          <div class="tl-item"><div class="tl-date">April 14</div><div class="tl-title">Theme Reveal + Jam Starts</div><div class="tl-desc">Theme announced at noon UTC. Start building. Clock's ticking.</div></div>
+          <div class="tl-item"><div class="tl-date">April 21</div><div class="tl-title">Midpoint Check-in</div><div class="tl-desc">Share your WIP screenshots. Get feedback. Panic a little. (That's normal.)</div></div>
+          <div class="tl-item"><div class="tl-date">April 28</div><div class="tl-title">Submissions Due</div><div class="tl-desc">Push to GitHub, fill out the form, done. 11:59 PM your local time.</div></div>
+          <div class="tl-item"><div class="tl-date">April 29 - May 5</div><div class="tl-title">Community Voting</div><div class="tl-desc">Play each other's games, leave comments, vote. Be nice. Everyone worked hard on this.</div></div>
+          <div class="tl-item"><div class="tl-date">May 6</div><div class="tl-title">Winners Announced</div><div class="tl-desc">Results go live. Top projects get featured. Bragging rights are free and unlimited.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ========================================= -->
+<!-- PAGE: COMMUNITY -->
+<!-- ========================================= -->
+<div class="page" id="page-community">
+  <section class="sec">
+    <div class="wrap">
+      <div class="reveal" style="text-align:center;margin-bottom:16px"><span class="badge bp">Community</span></div>
+      <h2 class="reveal" style="text-align:center;font-size:36px;margin-bottom:8px">Forum</h2>
+      <p class="reveal" style="text-align:center;color:var(--tb);max-width:520px;margin:0 auto 32px">Ask questions, share your games, show off your progress, or just say hi. Everyone's welcome here.</p>
+
+      <div class="forum-header reveal">
+        <div class="forum-tabs">
+          <button class="forum-tab active" data-cat="all" onclick="filterForum('all',this)">All</button>
+          <button class="forum-tab" data-cat="help" onclick="filterForum('help',this)">Help</button>
+          <button class="forum-tab" data-cat="showcase" onclick="filterForum('showcase',this)">Showcase</button>
+          <button class="forum-tab" data-cat="feedback" onclick="filterForum('feedback',this)">Feedback</button>
+          <button class="forum-tab" data-cat="offtopic" onclick="filterForum('offtopic',this)">Off-Topic</button>
+        </div>
+        <button class="btn btn-g" style="padding:9px 20px;font-size:13px" onclick="openNewPost()">+ New Post</button>
+      </div>
+
+      <div id="forum-posts">
+        <!-- populated by JS -->
+      </div>
+
+      <!-- New post form (hidden by default) -->
+      <div id="new-post-form" style="display:none;background:var(--bg2);border:1px solid var(--brd);border-radius:16px;padding:28px;margin-bottom:24px">
+        <h3 style="font-size:18px;margin-bottom:16px">New Post</h3>
+        <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="np-title" placeholder="My first NovaStar game!"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Category</label>
+            <select class="form-input" id="np-cat"><option value="help">Help</option><option value="showcase">Showcase</option><option value="feedback">Feedback</option><option value="offtopic">Off-Topic</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Tags (comma separated)</label><input class="form-input" id="np-tags" placeholder="beginner, platformer"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Content</label><textarea class="form-input form-textarea" id="np-body" placeholder="Write your post here..." style="min-height:120px"></textarea></div>
+        <div style="display:flex;gap:8px"><button class="btn btn-g" style="font-size:13px;padding:10px 24px" onclick="submitPost()">Post</button><button class="btn btn-out" style="font-size:13px;padding:10px 24px" onclick="closeNewPost()">Cancel</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ========================================= -->
+<!-- PAGE: LEARN -->
+<!-- ========================================= -->
+<div class="page" id="page-learn">
+  <section class="sec">
+    <div class="wrap">
+      <div class="reveal" style="text-align:center;margin-bottom:16px"><span class="badge bb">Learn</span></div>
+      <h2 class="reveal" style="text-align:center;font-size:36px;margin-bottom:8px">Getting Started</h2>
+      <p class="reveal" style="text-align:center;color:var(--tb);max-width:520px;margin:0 auto">From zero to your first game in about 5 minutes. Not joking. We timed it.</p>
+      <div class="steps">
+        <div class="step reveal"><div class="step-n">1</div><h3>Install Node.js</h3><p>Go to <a href="https://nodejs.org" target="_blank">nodejs.org</a> and download version 18 or newer. It's free, takes 2 minutes, and you only have to do it once.</p></div>
+        <div class="step reveal"><div class="step-n">2</div><h3>Download NovaStar</h3><p>Grab the latest release from <a href="https://github.com/JustyyDev/NovaStar-Engine/releases" target="_blank">GitHub Releases</a>. Unzip it. Open a terminal in that folder and run <code>npm install</code>.</p></div>
+        <div class="step reveal"><div class="step-n">3</div><h3>Start Building</h3><p>Run <code>npm run dev</code> and open <code>localhost:3000/editor.html</code>. Pick a template. Add stuff. Hit Play. You just made a game. (Sort of.)</p></div>
+      </div>
+
+      <div class="reveal" style="margin-top:48px">
+        <h3 style="font-size:24px;margin-bottom:16px;text-align:center">What do I do next?</h3>
+        <div class="feat-grid" style="grid-template-columns:repeat(2,1fr)">
+          <div class="feat"><h3>I'm a total beginner</h3><p>Start with the 3D Platformer template. It comes with a player, ground, stars to collect, and an enemy. Poke around. Move things. Break things. That's how you learn. The built-in tutorial at <code>tutorial.html</code> walks you through everything with pictures and code examples.</p></div>
+          <div class="feat"><h3>I know some code</h3><p>Check out the NovaScript console in the editor (bottom panel, Console tab). Try typing <code>engine.audio.play('jump')</code> and hit enter. Then look at the Star Hopper demo game in <code>src/game/</code> to see how a real game is structured. The API docs in <code>tutorial.html</code> cover every system.</p></div>
+          <div class="feat"><h3>I want to make 3D models</h3><p>Open the editor, go to the 3D Modeler tab at the bottom. Click "+ New Model" or try a preset (House, Tree, Sword). Add primitives, set colors, position them. When it looks right, hit "Save as Prefab" and you can spawn it anywhere in your game.</p></div>
+          <div class="feat"><h3>I want to join the game jam</h3><p>Awesome. Head to the <a href="#" onclick="goPage('events');return false">Events page</a>, scroll to the Spring 2026 Game Dev Race, and register your team. Then spend the signup period (now through April 13) learning the engine. When the theme drops April 14, you'll be ready.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ========================================= -->
+<!-- PAGE: DOWNLOADS -->
+<!-- ========================================= -->
+<div class="page" id="page-downloads">
+  <section class="sec">
+    <div class="wrap">
+      <div class="reveal" style="text-align:center;margin-bottom:16px"><span class="badge bb">Free Download</span></div>
+      <h2 class="reveal" style="text-align:center;font-size:36px;margin-bottom:8px">Get NovaStar Engine</h2>
+      <p class="reveal" style="text-align:center;color:var(--tb);max-width:480px;margin:0 auto">Every version includes the full editor, 3D modeler, and all engine features. No premium tier, no locked content, no "buy the pro version". It's all free.</p>
+      <div class="dl-cards">
+        <div class="dl-card reveal">
+          <svg viewBox="0 0 40 40" fill="none"><path d="M6 10L18 7V19H6ZM20 6.7L34 4V19H20ZM6 21H18V33L6 30ZM20 21H34V36L20 33.5Z" fill="currentColor"/></svg>
+          <h3>Windows</h3><p>.exe installer, 64-bit<br>Works on Windows 10 and 11</p>
+          <a href="https://github.com/JustyyDev/NovaStar-Engine/releases/latest" target="_blank" class="dl-btn">Download .exe</a>
+        </div>
+        <div class="dl-card reveal">
+          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="16" stroke="currentColor" stroke-width="2.5"/><path d="M20 8C14 14 14 26 20 32C26 26 26 14 20 8Z" stroke="currentColor" stroke-width="2"/><path d="M8 16H32M8 24H32" stroke="currentColor" stroke-width="1.5"/></svg>
+          <h3>Source Code</h3><p>Clone from GitHub<br>Run with Node.js 18+</p>
+          <a href="https://github.com/JustyyDev/NovaStar-Engine" target="_blank" class="dl-btn">View on GitHub</a>
+        </div>
+        <div class="dl-card reveal">
+          <svg viewBox="0 0 40 40" fill="none"><ellipse cx="20" cy="20" rx="10" ry="13" stroke="currentColor" stroke-width="2.5"/><circle cx="20" cy="14" r="2" fill="currentColor"/><path d="M14 24C14 28 20 30 20 30C20 30 26 28 26 24" stroke="currentColor" stroke-width="2"/></svg>
+          <h3>Linux</h3><p>.AppImage, 64-bit<br>Works on most distros</p>
+          <a href="https://github.com/JustyyDev/NovaStar-Engine/releases/latest" target="_blank" class="dl-btn">Download .AppImage</a>
+        </div>
+      </div>
+      <div class="reveal" style="margin-top:40px;text-align:center">
+        <p style="color:var(--td);font-size:13px">Current version: v0.3.2 &middot; <a href="https://github.com/JustyyDev/NovaStar-Engine/blob/main/CHANGELOG.md" target="_blank">View Changelog</a></p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ========================================= -->
+<!-- PAGE: PROFILE -->
+<!-- ========================================= -->
+<div class="page" id="page-profile">
+  <section class="sec">
+    <div class="wrap">
+      <!-- Banner -->
+      <div class="profile-banner"><div class="profile-banner-inner" id="prof-banner"></div></div>
+      <!-- Avatar + Info -->
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar" id="prof-avatar">?</div>
+        <div class="profile-info">
+          <h2 id="prof-display-name">Loading...</h2>
+          <div class="profile-handle" id="prof-email"></div>
+          <div class="profile-badges" id="prof-badges"></div>
+        </div>
+        <button class="btn btn-out" style="margin-left:auto;padding:8px 20px;font-size:13px" id="prof-edit-toggle" onclick="toggleProfileEdit()">Edit Profile</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="profile-stats" id="prof-stats">
+        <div class="profile-stat"><div class="ps-num" id="prof-posts">0</div><div class="ps-label">Posts</div></div>
+        <div class="profile-stat"><div class="ps-num" id="prof-replies">0</div><div class="ps-label">Replies</div></div>
+        <div class="profile-stat"><div class="ps-num" id="prof-joined">-</div><div class="ps-label">Joined</div></div>
+      </div>
+
+      <!-- Bio -->
+      <div class="profile-section">
+        <h3>About</h3>
+        <div class="profile-bio" id="prof-bio">No bio yet. Click "Edit Profile" to tell everyone about yourself.</div>
+      </div>
+
+      <!-- Edit Section (hidden by default) -->
+      <div id="profile-editor" style="display:none">
+        <div class="edit-section">
+          <h3>Basic Info</h3>
+          <div class="form-group"><label class="form-label">Display Name</label><input class="form-input" id="edit-name" placeholder="Your cool name"></div>
+          <div class="form-group"><label class="form-label">Bio</label><textarea class="form-input form-textarea" id="edit-bio" placeholder="Tell people about yourself. What games do you like? What are you building?"></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Skill Level</label>
+              <select class="form-input" id="edit-skill"><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select>
+            </div>
+            <div class="form-group"><label class="form-label">Favorite Game Type</label>
+              <select class="form-input" id="edit-gametype"><option value="">Pick one...</option><option value="platformer">Platformer</option><option value="rpg">RPG</option><option value="shooter">Shooter</option><option value="puzzle">Puzzle</option><option value="racing">Racing</option><option value="sandbox">Sandbox</option><option value="other">Other</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="edit-section">
+          <h3>Avatar Color</h3>
+          <p style="font-size:12px;color:var(--td);margin-bottom:12px">Pick a background color for your avatar.</p>
+          <div class="color-picker-row" id="avatar-colors"></div>
+        </div>
+
+        <div class="edit-section">
+          <h3>Banner Style</h3>
+          <p style="font-size:12px;color:var(--td);margin-bottom:12px">Choose a gradient for your profile banner.</p>
+          <div class="color-picker-row" id="banner-styles"></div>
+        </div>
+
+        <div class="edit-section">
+          <h3>Avatar Icon</h3>
+          <p style="font-size:12px;color:var(--td);margin-bottom:12px">Pick an icon to represent you. (More unlock as you participate!)</p>
+          <div class="cosmetic-grid" id="avatar-icons"></div>
+        </div>
+
+        <div class="edit-section">
+          <h3>Profile Badge</h3>
+          <p style="font-size:12px;color:var(--td);margin-bottom:12px">Show off what you're about.</p>
+          <div class="cosmetic-grid" id="badge-picker" style="grid-template-columns:repeat(3,1fr)"></div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="btn btn-g" onclick="saveProfile()">Save Changes</button>
+          <button class="btn btn-out" onclick="toggleProfileEdit()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ===== FOOTER ===== -->
+<footer id="site-footer">
+  <div class="wrap">
+    <div class="footer-links">
+      <a href="https://github.com/JustyyDev/NovaStar-Engine" target="_blank">GitHub</a>
+      <a href="https://github.com/JustyyDev/NovaStar-Engine/releases" target="_blank">Releases</a>
+      <a href="https://github.com/JustyyDev/NovaStar-Engine/issues" target="_blank">Report a Bug</a>
+      <a href="#" onclick="goPage('events');return false">Events</a>
+      <a href="#" onclick="goPage('community');return false">Community</a>
+    </div>
+    <p>NovaStar Engine by <a href="https://github.com/JustyyDev" target="_blank">JustyyDev</a>. MIT License.</p>
+    <p style="margin-top:6px;font-size:12px">Made for game developers who dream big and start small. No game engines were harmed in the making of this website.</p>
+  </div>
+</footer>
+
+<!-- ========================================= -->
+<!-- ALL THE JS -->
+<!-- ========================================= -->
+<!-- Firebase SDK (CDN version, no build step needed) -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, arrayUnion, query, orderBy, where, serverTimestamp, Timestamp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+
+// ===== FIREBASE INIT =====
+const firebaseConfig = {
+  apiKey: "AIzaSyD7lIF7Lgob_w2hbjNCkhtjUKSmlOz3PEA",
+  authDomain: "novastar-engine.firebaseapp.com",
+  projectId: "novastar-engine",
+  storageBucket: "novastar-engine.firebasestorage.app",
+  messagingSenderId: "973247377207",
+  appId: "1:973247377207:web:e8a47f4df369e027aff4b2",
+  measurementId: "G-SNLZQLNKMQ"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// Make functions available globally (since HTML uses onclick)
+window.goPage = goPage;
+window.openAuth = openAuth;
+window.closeAuth = closeAuth;
+window.authTab = authTab;
+window.doSignup = doSignup;
+window.doLogin = doLogin;
+window.doGoogleSignIn = doGoogleSignIn;
+window.logout = doLogout;
+window.addTeamMember = addTeamMember;
+window.removeTeamMember = removeTeamMember;
+window.submitTeam = submitTeam;
+window.filterForum = filterForum;
+window.renderForum = renderForum;
+window.viewPost = viewPost;
+window.submitReply = submitReply;
+window.openNewPost = openNewPost;
+window.closeNewPost = closeNewPost;
+window.submitPost = submitPost;
+
+// ===== CURRENT USER STATE =====
+let currentUser = null;
+let currentProfile = null; // { name, skill }
+
+// ===== SPA ROUTING =====
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + name);
+  if (page) { page.classList.add('active'); window.scrollTo(0, 0); }
+  document.querySelectorAll('.nav-link[data-page]').forEach(l => l.classList.toggle('active', l.dataset.page === name));
+  if (name === 'community') loadForumPosts();
+  if (name === 'events') checkTeamRegistration();
+  setTimeout(() => {
+    document.querySelectorAll('.page.active .reveal:not(.vis)').forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight) el.classList.add('vis');
+    });
+  }, 50);
+}
+
+// ===== STARS ANIMATION =====
+(function() {
+  const c = document.getElementById('stars');
+  if (!c) return;
+  for (let i = 0; i < 40; i++) {
+    const s = document.createElement('div'); s.className = 'star';
+    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${Math.random()*5}s;animation-duration:${3+Math.random()*4}s;width:${1+Math.random()*3}px;height:${1+Math.random()*3}px;background:${['#4ee6a0','#4da8ff','#a86bff','#ffd84d'][Math.floor(Math.random()*4)]}`;
+    c.appendChild(s);
+  }
+})();
+
+// ===== COUNTDOWN =====
+(function() {
+  const target = new Date('2026-04-14T12:00:00Z').getTime();
+  function upd() {
+    const d = Math.max(0, target - Date.now());
+    const el = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    el('cd-d', Math.floor(d / 86400000));
+    el('cd-h', Math.floor((d % 86400000) / 3600000));
+    el('cd-m', String(Math.floor((d % 3600000) / 60000)).padStart(2, '0'));
+    el('cd-s', String(Math.floor((d % 60000) / 1000)).padStart(2, '0'));
+  }
+  upd(); setInterval(upd, 1000);
+})();
+
+// ===== SCROLL REVEAL =====
+(function() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); obs.unobserve(e.target); } });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+})();
+
+// ===== TOAST =====
+function toast(msg, type = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast toast-' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ===== FIREBASE AUTH =====
+function openAuth(tab) {
+  document.getElementById('auth-modal').classList.add('open');
+  authTab(tab || 'signup');
+}
+function closeAuth() { document.getElementById('auth-modal').classList.remove('open'); }
+function authTab(tab) {
+  document.getElementById('auth-signup').style.display = tab === 'signup' ? '' : 'none';
+  document.getElementById('auth-login').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('auth-title').textContent = tab === 'signup' ? 'Join NovaStar' : 'Welcome Back';
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === (tab === 'signup' ? 0 : 1)));
+}
+document.getElementById('auth-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAuth(); });
+
+async function doSignup() {
+  const name = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const pass = document.getElementById('su-pass').value;
+  const skill = document.getElementById('su-skill').value;
+  if (!name || !email || !pass) { toast('Please fill in all fields', 'err'); return; }
+  if (pass.length < 6) { toast('Password needs at least 6 characters (Firebase rule, not ours)', 'err'); return; }
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, { displayName: name });
+    // Save extra profile data to Firestore
+    await addDoc(collection(db, 'users'), { uid: cred.user.uid, name, email, skill, joined: serverTimestamp() });
+    currentProfile = { name, skill };
+    closeAuth();
+    toast('Welcome to NovaStar, ' + name + '!');
+  } catch (err) {
+    const msgs = { 'auth/email-already-in-use': 'That email is already taken', 'auth/weak-password': 'Password is too weak (min 6 chars)', 'auth/invalid-email': 'That email doesn\'t look right' };
+    toast(msgs[err.code] || err.message, 'err');
+  }
+}
+
+async function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass = document.getElementById('li-pass').value;
+  if (!email || !pass) { toast('Fill in your credentials', 'err'); return; }
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    closeAuth();
+    toast('Welcome back!');
+  } catch (err) {
+    const msgs = { 'auth/user-not-found': 'No account with that email', 'auth/wrong-password': 'Wrong password', 'auth/invalid-credential': 'Wrong email or password', 'auth/invalid-email': 'That email doesn\'t look right' };
+    toast(msgs[err.code] || err.message, 'err');
+  }
+}
+
+async function doGoogleSignIn() {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    // Check if profile exists in Firestore, if not create one
+    const q = query(collection(db, 'users'), where('uid', '==', user.uid));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      await addDoc(collection(db, 'users'), { uid: user.uid, name: user.displayName || 'Player', email: user.email, skill: 'beginner', joined: serverTimestamp() });
+    }
+    closeAuth();
+    toast('Signed in with Google!');
+  } catch (err) {
+    if (err.code !== 'auth/popup-closed-by-user') toast(err.message, 'err');
+  }
+}
+
+async function doLogout() {
+  await signOut(auth);
+  currentUser = null;
+  currentProfile = null;
+  toast('Logged out. See you next time!');
+}
+
+// Listen for auth state changes (handles page reload, Google redirect, etc.)
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  if (user) {
+    // Load profile from Firestore
+    try {
+      const q = query(collection(db, 'users'), where('uid', '==', user.uid));
+      const snap = await getDocs(q);
+      if (!snap.empty) currentProfile = snap.docs[0].data();
+      else currentProfile = { name: user.displayName || 'Player', skill: 'beginner' };
+    } catch { currentProfile = { name: user.displayName || 'Player', skill: 'beginner' }; }
+  } else {
+    currentProfile = null;
+  }
+  updateAuthUI();
+});
+
+function updateAuthUI() {
+  const authEl = document.getElementById('nav-auth');
+  if (currentUser) {
+    const name = currentUser.displayName || currentProfile?.name || 'Player';
+    authEl.innerHTML = `<div class="nav-user" onclick="logout()"><div class="avatar">${name.charAt(0).toUpperCase()}</div>${name}<span style="font-size:10px;color:var(--td);margin-left:4px">(logout)</span></div>`;
+  } else {
+    authEl.innerHTML = '<button class="btn btn-g" style="padding:8px 20px;font-size:13px" onclick="openAuth(\'signup\')">Sign Up</button>';
+  }
+}
+
+function getUserName() {
+  if (currentUser?.displayName) return currentUser.displayName;
+  if (currentProfile?.name) return currentProfile.name;
+  return 'Anonymous';
+}
+
+// ===== TEAM SIGNUP (Firestore) =====
+let teamMembers = [];
+function addTeamMember() {
+  const input = document.getElementById('team-member-input');
+  const name = input.value.trim();
+  if (!name) return;
+  if (teamMembers.length >= 2) { toast('Max 2 extra teammates (3 total)', 'err'); return; }
+  if (teamMembers.includes(name)) { toast('Already added', 'err'); return; }
+  teamMembers.push(name); input.value = '';
+  renderTeamMembers();
+}
+function removeTeamMember(i) { teamMembers.splice(i, 1); renderTeamMembers(); }
+function renderTeamMembers() {
+  const c = document.getElementById('team-members');
+  c.innerHTML = teamMembers.map((m, i) => `<span class="member-tag"><span>${m}</span><span class="x" onclick="removeTeamMember(${i})">x</span></span>`).join('');
+}
+
+async function submitTeam() {
+  const name = document.getElementById('team-name').value.trim();
+  const leader = document.getElementById('team-leader').value.trim();
+  const email = document.getElementById('team-email').value.trim();
+  if (!name || !leader || !email) { toast('Fill in team name, your name, and email', 'err'); return; }
+  try {
+    await addDoc(collection(db, 'teams'), {
+      name, leader, email, members: [...teamMembers],
+      idea: document.getElementById('team-idea').value.trim(),
+      uid: currentUser?.uid || null,
+      registered: serverTimestamp()
+    });
+    document.getElementById('team-signup').style.display = 'none';
+    const s = document.getElementById('team-success'); s.style.display = '';
+    document.getElementById('team-confirm-info').innerHTML = `<strong style="color:var(--t)">${name}</strong><br>Leader: ${leader}<br>Team: ${[leader, ...teamMembers].join(', ')}`;
+    toast('Team registered! See you April 14.');
+  } catch (err) { toast('Failed to register: ' + err.message, 'err'); }
+}
+
+async function checkTeamRegistration() {
+  if (!currentUser) return;
+  try {
+    const q = query(collection(db, 'teams'), where('uid', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const t = snap.docs[0].data();
+      document.getElementById('team-signup').style.display = 'none';
+      const s = document.getElementById('team-success'); s.style.display = '';
+      document.getElementById('team-confirm-info').innerHTML = `<strong style="color:var(--t)">${t.name}</strong><br>Leader: ${t.leader}<br>Team: ${[t.leader, ...(t.members||[])].join(', ')}`;
+    }
+  } catch {}
+}
+
+// ===== FORUM SYSTEM (Firestore) =====
+let forumCache = [];
+
+async function loadForumPosts() {
+  try {
+    const snap = await getDocs(query(collection(db, 'posts'), orderBy('time', 'desc')));
+    forumCache = snap.docs.map(d => ({ id: d.id, ...d.data(), time: d.data().time?.toMillis?.() || d.data().time || Date.now() }));
+    renderForum('all');
+  } catch (err) {
+    console.warn('Forum load failed, using seed data:', err);
+    // Fallback to seed posts if Firestore isn't populated yet
+    forumCache = getSeedPosts();
+    renderForum('all');
+  }
+}
+
+function getSeedPosts() {
+  return [
+    { id: 'p1', title: 'Welcome to the NovaStar community!', body: 'Hey everyone! This is the official NovaStar forum. Post your games, ask for help, share tips, or just hang out. Be nice to each other and have fun.', author: 'JustyyDev', cat: 'offtopic', tags: ['welcome', 'announcement'], time: Date.now() - 3600000, replies: [
+      { author: 'StarBuilder', body: 'Awesome! Excited to be here. Already working on a platformer.', time: Date.now() - 1800000 },
+      { author: 'PixelPusher', body: 'This engine is so much fun. The 3D modeler is surprisingly addictive.', time: Date.now() - 900000 }
+    ]},
+    { id: 'p2', title: 'My first game: Star Collector!', body: 'Just finished my first NovaStar game using the 3D Platformer template. Pretty happy with how it turned out.', author: 'NewbieDev', cat: 'showcase', tags: ['beginner', 'platformer'], time: Date.now() - 7200000, replies: [] },
+    { id: 'p3', title: 'How do I make an enemy patrol back and forth?', body: 'I have a slime enemy placed in my scene but it just sits there. How do I make it walk left and right?', author: 'GameKid99', cat: 'help', tags: ['help', 'enemies', 'beginner'], time: Date.now() - 10800000, replies: [
+      { author: 'JustyyDev', body: 'Add a PatrolAI component! Click "+ Add Component", pick PatrolAI, set speed to 2 and range to 5.', time: Date.now() - 9000000 }
+    ]},
+    { id: 'p4', title: 'The tilemap editor needs a layer system', body: 'Love the tilemap editor but multiple layers would make complex levels easier.', author: 'TileWizard', cat: 'feedback', tags: ['tilemap', 'feature-request'], time: Date.now() - 14400000, replies: [] },
+  ];
+}
+
+function renderForum(cat) {
+  const posts = cat === 'all' ? forumCache : forumCache.filter(p => p.cat === cat);
+  const c = document.getElementById('forum-posts');
+  if (!c) return;
+  if (posts.length === 0) { c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--td)">No posts yet. Be the first!</div>'; return; }
+  const catColors = { help: 'var(--b)', showcase: 'var(--p)', feedback: 'var(--o)', offtopic: 'var(--td)' };
+  const catBg = { help: 'var(--bg-b)', showcase: 'var(--bg-p)', feedback: 'var(--bg-o)', offtopic: 'rgba(255,255,255,.04)' };
+  c.innerHTML = posts.map(p => {
+    const ago = timeAgo(p.time);
+    const color = catColors[p.cat] || 'var(--td)';
+    const bgc = catBg[p.cat] || 'rgba(255,255,255,.04)';
+    const tags = (p.tags || []).map(t => `<span class="post-tag" style="background:${bgc};color:${color}">${t}</span>`).join('');
+    const replyCount = (p.replies || []).length;
+    return `<div class="post-card" onclick="viewPost('${p.id}')">
+      <div class="post-top"><div class="post-avatar" style="background:${bgc};color:${color}">${(p.author||'?').charAt(0).toUpperCase()}</div><div><strong>${p.author}</strong> <span class="post-meta">&middot; ${ago} &middot; ${replyCount} ${replyCount === 1 ? 'reply' : 'replies'}</span></div></div>
+      <div class="post-title">${esc(p.title)}</div>
+      <div class="post-body" style="max-height:60px;overflow:hidden">${esc(p.body)}</div>
+      <div class="post-tags">${tags}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterForum(cat, btn) {
+  document.querySelectorAll('.forum-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderForum(cat);
+}
+
+function viewPost(id) {
+  const p = forumCache.find(x => x.id === id);
+  if (!p) return;
+  const catColors = { help: 'var(--b)', showcase: 'var(--p)', feedback: 'var(--o)', offtopic: 'var(--td)' };
+  const color = catColors[p.cat] || 'var(--td)';
+  const c = document.getElementById('forum-posts');
+  const replies = (p.replies || []).map(r => `<div class="reply"><div class="post-avatar" style="background:var(--bg4);color:var(--tb);width:28px;height:28px;border-radius:6px;font-size:12px">${(r.author||'?').charAt(0).toUpperCase()}</div><div><strong style="font-size:13px">${esc(r.author)}</strong> <span style="font-size:11px;color:var(--td)">&middot; ${timeAgo(r.time)}</span><p style="font-size:13px;color:var(--tb);margin-top:4px">${esc(r.body)}</p></div></div>`).join('');
+  c.innerHTML = `<div style="margin-bottom:8px"><a href="#" onclick="loadForumPosts();return false" style="font-size:13px;color:var(--g)">&larr; Back to forum</a></div>
+    <div style="background:var(--bg2);border:1px solid var(--brd);border-radius:16px;padding:28px">
+      <div class="post-top"><div class="post-avatar" style="background:var(--bg4);color:${color}">${(p.author||'?').charAt(0).toUpperCase()}</div><div><strong>${esc(p.author)}</strong> <span class="post-meta">&middot; ${timeAgo(p.time)}</span></div></div>
+      <h3 style="font-size:22px;margin:12px 0 8px">${esc(p.title)}</h3>
+      <p style="font-size:14px;color:var(--tb);line-height:1.7">${esc(p.body)}</p>
+      <div class="post-tags" style="margin-top:12px">${(p.tags||[]).map(t=>'<span class="post-tag" style="background:var(--bg4);color:var(--td)">'+t+'</span>').join('')}</div>
+      <div class="reply-box" style="margin-top:24px"><h4 style="font-size:15px;margin-bottom:12px">Replies (${(p.replies||[]).length})</h4>${replies || '<p style="color:var(--td);font-size:13px">No replies yet. Be the first!</p>'}
+        <div style="margin-top:16px;display:flex;gap:8px"><input class="form-input" id="reply-input" placeholder="Write a reply..." style="flex:1"><button class="btn btn-g" style="padding:8px 18px;font-size:13px" onclick="submitReply('${p.id}')">Reply</button></div>
+      </div>
+    </div>`;
+}
+
+async function submitReply(postId) {
+  if (!currentUser) { openAuth('login'); toast('Log in to reply', 'err'); return; }
+  const input = document.getElementById('reply-input');
+  const body = input.value.trim();
+  if (!body) return;
+  try {
+    const postRef = doc(db, 'posts', postId);
+    await updateDoc(postRef, {
+      replies: arrayUnion({ author: getUserName(), body, time: Date.now() })
+    });
+    // Update local cache too
+    const cached = forumCache.find(p => p.id === postId);
+    if (cached) { if (!cached.replies) cached.replies = []; cached.replies.push({ author: getUserName(), body, time: Date.now() }); }
+    viewPost(postId);
+    toast('Reply posted!');
+  } catch (err) {
+    // Fallback for seed posts (not in Firestore yet)
+    const cached = forumCache.find(p => p.id === postId);
+    if (cached) { if (!cached.replies) cached.replies = []; cached.replies.push({ author: getUserName(), body, time: Date.now() }); }
+    viewPost(postId);
+    toast('Reply saved locally (seed post)');
+  }
+}
+
+function openNewPost() {
+  if (!currentUser) { openAuth('login'); toast('Log in to post', 'err'); return; }
+  document.getElementById('new-post-form').style.display = '';
+}
+function closeNewPost() { document.getElementById('new-post-form').style.display = 'none'; }
+
+async function submitPost() {
+  if (!currentUser) { openAuth('login'); return; }
+  const title = document.getElementById('np-title').value.trim();
+  const body = document.getElementById('np-body').value.trim();
+  const cat = document.getElementById('np-cat').value;
+  const tags = document.getElementById('np-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  if (!title || !body) { toast('Fill in title and content', 'err'); return; }
+  try {
+    await addDoc(collection(db, 'posts'), {
+      title, body, author: getUserName(), cat, tags,
+      time: serverTimestamp(), replies: [],
+      uid: currentUser.uid
+    });
+    closeNewPost();
+    document.getElementById('np-title').value = '';
+    document.getElementById('np-body').value = '';
+    document.getElementById('np-tags').value = '';
+    await loadForumPosts();
+    toast('Post created!');
+  } catch (err) { toast('Failed to post: ' + err.message, 'err'); }
+}
+
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  if (diff < 60000) return 'just now';
+  if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+  return Math.floor(diff / 86400000) + 'd ago';
+}
+
+// Simple HTML escaper to prevent XSS
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+// Make profile functions global
+window.toggleProfileEdit = toggleProfileEdit;
+window.saveProfile = saveProfile;
+
+// ===== PROFILE SYSTEM =====
+const AVATAR_COLORS = ['#4ee6a0','#4da8ff','#a86bff','#ff8a3d','#ff5e8a','#ffd84d','#ff4757','#2ed573','#1e90ff','#ff6b81','#7bed9f','#70a1ff','#5352ed','#ff6348','#eccc68','#a4b0be'];
+const BANNER_GRADIENTS = [
+  'linear-gradient(135deg,#4ee6a0,#4da8ff)','linear-gradient(135deg,#a86bff,#ff5e8a)','linear-gradient(135deg,#ff8a3d,#ffd84d)',
+  'linear-gradient(135deg,#1e90ff,#a86bff)','linear-gradient(135deg,#ff4757,#ff8a3d)','linear-gradient(135deg,#2ed573,#1e90ff)',
+  'linear-gradient(135deg,#5352ed,#ff6b81)','linear-gradient(135deg,#eccc68,#ff6348)','linear-gradient(135deg,#0e1017,#222839)',
+  'linear-gradient(135deg,#141e30,#243b55)','linear-gradient(135deg,#0f2027,#2c5364)','linear-gradient(135deg,#232526,#414345)'
+];
+const AVATAR_ICONS = [
+  {icon:'⭐',label:'Star',unlocked:true},{icon:'🎮',label:'Gamer',unlocked:true},{icon:'🚀',label:'Rocket',unlocked:true},
+  {icon:'🔥',label:'Fire',unlocked:true},{icon:'💎',label:'Gem',unlocked:true},{icon:'🎯',label:'Target',unlocked:true},
+  {icon:'⚡',label:'Bolt',unlocked:true},{icon:'🌟',label:'Sparkle',unlocked:true},{icon:'🐱',label:'Cat',unlocked:true},
+  {icon:'🤖',label:'Robot',unlocked:true},{icon:'👾',label:'Alien',unlocked:true},{icon:'🦊',label:'Fox',unlocked:true},
+  {icon:'🐲',label:'Dragon',unlocked:true},{icon:'🎪',label:'Circus',unlocked:true},{icon:'🏆',label:'Trophy',unlocked:true},
+  {icon:'🧙',label:'Wizard',unlocked:true}
+];
+const BADGES = [
+  {id:'beginner',label:'Beginner',color:'var(--g)',bg:'var(--gg)',icon:'🌱'},
+  {id:'intermediate',label:'Intermediate',color:'var(--b)',bg:'var(--bg-b)',icon:'🔧'},
+  {id:'advanced',label:'Advanced',color:'var(--p)',bg:'var(--bg-p)',icon:'💻'},
+  {id:'jam-participant',label:'Game Jam',color:'var(--o)',bg:'var(--bg-o)',icon:'🏁'},
+  {id:'creator',label:'Creator',color:'var(--pk)',bg:'var(--bg-pk)',icon:'🎨'},
+  {id:'helper',label:'Helper',color:'var(--y)',bg:'var(--bg-y)',icon:'🤝'},
+];
+
+let profileData = {
+  name:'', bio:'', skill:'beginner', gameType:'',
+  avatarColor:'#4da8ff', bannerGradient:BANNER_GRADIENTS[0],
+  avatarIcon:'⭐', badges:['beginner'], joined:null
+};
+let editingProfile = false;
+
+function toggleProfileEdit() {
+  editingProfile = !editingProfile;
+  document.getElementById('profile-editor').style.display = editingProfile ? '' : 'none';
+  if (editingProfile) populateEditor();
+}
+
+function populateEditor() {
+  document.getElementById('edit-name').value = profileData.name;
+  document.getElementById('edit-bio').value = profileData.bio || '';
+  document.getElementById('edit-skill').value = profileData.skill || 'beginner';
+  document.getElementById('edit-gametype').value = profileData.gameType || '';
+  // Avatar colors
+  const ac = document.getElementById('avatar-colors');
+  ac.innerHTML = AVATAR_COLORS.map(c => `<div class="color-swatch${profileData.avatarColor===c?' active':''}" style="background:${c}" onclick="pickAvatarColor('${c}',this)"></div>`).join('');
+  // Banner styles
+  const bs = document.getElementById('banner-styles');
+  bs.innerHTML = BANNER_GRADIENTS.map((g,i) => `<div class="color-swatch${profileData.bannerGradient===g?' active':''}" style="background:${g};width:64px;border-radius:8px" onclick="pickBanner(${i},this)"></div>`).join('');
+  // Avatar icons
+  const ai = document.getElementById('avatar-icons');
+  ai.innerHTML = AVATAR_ICONS.map(a => `<div class="cosmetic-item${profileData.avatarIcon===a.icon?' active':''}" onclick="pickAvatarIcon('${a.icon}',this)">${a.icon}<span class="ci-label">${a.label}</span></div>`).join('');
+  // Badges
+  const bp = document.getElementById('badge-picker');
+  bp.innerHTML = BADGES.map(b => `<div class="cosmetic-item${profileData.badges?.includes(b.id)?' active':''}" onclick="toggleBadge('${b.id}',this)" style="font-size:16px">${b.icon} ${b.label}<span class="ci-label">${profileData.badges?.includes(b.id)?'equipped':'click to equip'}</span></div>`).join('');
+}
+
+window.pickAvatarColor = function(c, el) {
+  profileData.avatarColor = c;
+  document.querySelectorAll('#avatar-colors .color-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('prof-avatar').style.background = c;
+};
+window.pickBanner = function(i, el) {
+  profileData.bannerGradient = BANNER_GRADIENTS[i];
+  document.querySelectorAll('#banner-styles .color-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('prof-banner').style.background = BANNER_GRADIENTS[i];
+};
+window.pickAvatarIcon = function(icon, el) {
+  profileData.avatarIcon = icon;
+  document.querySelectorAll('#avatar-icons .cosmetic-item').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('prof-avatar').textContent = icon;
+};
+window.toggleBadge = function(id, el) {
+  if (!profileData.badges) profileData.badges = [];
+  const idx = profileData.badges.indexOf(id);
+  if (idx >= 0) profileData.badges.splice(idx, 1);
+  else if (profileData.badges.length < 3) profileData.badges.push(id);
+  else { toast('Max 3 badges at a time', 'err'); return; }
+  populateEditor();
+};
+
+async function saveProfile() {
+  if (!currentUser) return;
+  profileData.name = document.getElementById('edit-name').value.trim() || profileData.name;
+  profileData.bio = document.getElementById('edit-bio').value.trim();
+  profileData.skill = document.getElementById('edit-skill').value;
+  profileData.gameType = document.getElementById('edit-gametype').value;
+  try {
+    const q = query(collection(db, 'users'), where('uid', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const docRef = doc(db, 'users', snap.docs[0].id);
+      await updateDoc(docRef, {
+        name: profileData.name, bio: profileData.bio, skill: profileData.skill,
+        gameType: profileData.gameType, avatarColor: profileData.avatarColor,
+        bannerGradient: profileData.bannerGradient, avatarIcon: profileData.avatarIcon,
+        badges: profileData.badges
+      });
+    }
+    await updateProfile(currentUser, { displayName: profileData.name });
+    currentProfile = { ...currentProfile, ...profileData };
+    toggleProfileEdit();
+    renderProfileView();
+    updateAuthUI();
+    toast('Profile saved!');
+  } catch (err) { toast('Save failed: ' + err.message, 'err'); }
+}
+
+async function loadProfile() {
+  if (!currentUser) return;
+  try {
+    const q = query(collection(db, 'users'), where('uid', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const d = snap.docs[0].data();
+      profileData = {
+        name: d.name || currentUser.displayName || 'Player',
+        bio: d.bio || '', skill: d.skill || 'beginner', gameType: d.gameType || '',
+        avatarColor: d.avatarColor || '#4da8ff', bannerGradient: d.bannerGradient || BANNER_GRADIENTS[0],
+        avatarIcon: d.avatarIcon || '⭐', badges: d.badges || ['beginner'],
+        joined: d.joined?.toDate?.() || null
+      };
+    }
+  } catch {}
+  renderProfileView();
+}
+
+function renderProfileView() {
+  document.getElementById('prof-banner').style.background = profileData.bannerGradient;
+  const av = document.getElementById('prof-avatar');
+  av.style.background = profileData.avatarColor;
+  av.textContent = profileData.avatarIcon;
+  av.style.color = '#fff';
+  document.getElementById('prof-display-name').textContent = profileData.name;
+  document.getElementById('prof-email').textContent = currentUser?.email || '';
+  document.getElementById('prof-bio').textContent = profileData.bio || 'No bio yet. Click "Edit Profile" to tell everyone about yourself.';
+  // Badges
+  const badgeEl = document.getElementById('prof-badges');
+  badgeEl.innerHTML = (profileData.badges || []).map(bid => {
+    const b = BADGES.find(x => x.id === bid);
+    return b ? `<span class="profile-badge-item" style="background:${b.bg};color:${b.color}">${b.icon} ${b.label}</span>` : '';
+  }).join('');
+  // Stats
+  if (profileData.joined) {
+    const d = profileData.joined;
+    document.getElementById('prof-joined').textContent = d.toLocaleDateString('en-US', {month:'short',year:'numeric'});
+  }
+  // Count posts/replies
+  let posts = 0, replies = 0;
+  forumCache.forEach(p => {
+    if (p.author === profileData.name) posts++;
+    (p.replies||[]).forEach(r => { if (r.author === profileData.name) replies++; });
+  });
+  document.getElementById('prof-posts').textContent = posts;
+  document.getElementById('prof-replies').textContent = replies;
+}
+
+// Update the auth UI to show profile link and avatar
+const _origUpdateAuthUI = updateAuthUI;
+updateAuthUI = function() {
+  const authEl = document.getElementById('nav-auth');
+  const profileLink = document.getElementById('nav-profile-link');
+  if (currentUser) {
+    const name = currentUser.displayName || currentProfile?.name || 'Player';
+    const icon = currentProfile?.avatarIcon || profileData.avatarIcon || '⭐';
+    const color = currentProfile?.avatarColor || profileData.avatarColor || '#4da8ff';
+    authEl.innerHTML = `<div class="nav-user" onclick="goPage('profile')"><div class="avatar" style="background:${color};color:#fff;font-size:14px">${icon}</div>${name}</div><button class="btn btn-out" style="padding:5px 12px;font-size:11px" onclick="event.stopPropagation();logout()">Logout</button>`;
+    if (profileLink) profileLink.style.display = '';
+  } else {
+    authEl.innerHTML = '<button class="btn btn-g" style="padding:8px 20px;font-size:13px" onclick="openAuth(\'signup\')">Sign Up</button>';
+    if (profileLink) profileLink.style.display = 'none';
+  }
+};
+
+// Patch the goPage to load profile when visiting
+const _origGoPage = goPage;
+goPage = function(name) {
+  _origGoPage(name);
+  if (name === 'profile' && currentUser) loadProfile();
+};
+// Re-expose
+window.goPage = goPage;
+
+// Init forum with seed data
+forumCache = getSeedPosts();
+renderForum('all');
+</script>
+</body>
+</html>

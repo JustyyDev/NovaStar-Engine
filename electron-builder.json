@@ -1,0 +1,82 @@
+{
+  "appId": "com.novastar.engine",
+  "productName": "NovaStar Engine",
+  "copyright": "Copyright © 2026 NovaStar",
+
+  "directories": {
+    "output": "release",
+    "buildResources": "electron/assets"
+  },
+
+  "files": [
+    "dist/**/*",
+    "electron/**/*",
+    "!electron/assets/icon.icns",
+    "!electron/assets/icon.ico"
+  ],
+
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "electron/assets/icon.ico",
+    "artifactName": "${productName}-Setup-${version}.${ext}"
+  },
+
+  "nsis": {
+    "oneClick": false,
+    "perMachine": true,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "NovaStar Engine",
+    "installerIcon": "electron/assets/icon.ico",
+    "uninstallerIcon": "electron/assets/icon.ico",
+    "license": "LICENSE",
+    "runAfterFinish": true,
+    "deleteAppDataOnUninstall": false,
+    "include": "electron/installer.nsh"
+  },
+
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "icon": "electron/assets/icon.icns",
+    "category": "public.app-category.developer-tools",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
+  },
+
+  "dmg": {
+    "title": "${productName} ${version}",
+    "icon": "electron/assets/icon.icns"
+  },
+
+  "linux": {
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": ["x64"]
+      },
+      {
+        "target": "deb",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "electron/assets",
+    "category": "Development",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
+  },
+
+  "extraMetadata": {
+    "main": "electron/main.cjs"
+  },
+
+  "publish": null
+}
