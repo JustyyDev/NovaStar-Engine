@@ -1,0 +1,404 @@
+{
+  "Entity": {
+    "prefix": "entity",
+    "body": [
+      "entity ${1:MyEntity} {",
+      "  var ${2:speed}: float = ${3:5.0};",
+      "",
+      "  fn onUpdate(dt: float) {",
+      "    $0",
+      "  }",
+      "}"
+    ],
+    "description": "Create a new entity with an update function"
+  },
+  "Entity with Collision": {
+    "prefix": "entitycol",
+    "body": [
+      "entity ${1:MyEntity} {",
+      "  var ${2:health}: int = ${3:100};",
+      "",
+      "  fn onUpdate(dt: float) {",
+      "    $0",
+      "  }",
+      "",
+      "  fn onCollision(other: Entity) {",
+      "    if (other.tag == \"${4:enemy}\") {",
+      "      ${2:health} -= 1;",
+      "    }",
+      "  }",
+      "}"
+    ],
+    "description": "Create an entity with update and collision handling"
+  },
+  "Entity extends": {
+    "prefix": "entityext",
+    "body": [
+      "entity ${1:Child} extends ${2:Parent} {",
+      "  $0",
+      "}"
+    ],
+    "description": "Create an entity that extends another"
+  },
+  "Function": {
+    "prefix": "fn",
+    "body": [
+      "fn ${1:myFunction}(${2:param}: ${3:float}) {",
+      "  $0",
+      "}"
+    ],
+    "description": "Declare a function"
+  },
+  "Function with return": {
+    "prefix": "fnr",
+    "body": [
+      "fn ${1:myFunction}(${2:param}: ${3:float}): ${4:float} {",
+      "  return $0;",
+      "}"
+    ],
+    "description": "Declare a function with return type"
+  },
+  "onUpdate": {
+    "prefix": "onupdate",
+    "body": [
+      "fn onUpdate(dt: float) {",
+      "  $0",
+      "}"
+    ],
+    "description": "Update lifecycle (runs every frame)"
+  },
+  "onFixedUpdate": {
+    "prefix": "onfixed",
+    "body": [
+      "fn onFixedUpdate(dt: float) {",
+      "  $0",
+      "}"
+    ],
+    "description": "Fixed update lifecycle (runs at fixed timestep, for physics)"
+  },
+  "onCollision": {
+    "prefix": "oncollision",
+    "body": [
+      "fn onCollision(other: Entity) {",
+      "  if (other.tag == \"${1:tag}\") {",
+      "    $0",
+      "  }",
+      "}"
+    ],
+    "description": "Collision handler"
+  },
+  "onTriggerEnter": {
+    "prefix": "ontrigger",
+    "body": [
+      "fn onTriggerEnter(other: Entity) {",
+      "  $0",
+      "}"
+    ],
+    "description": "Trigger enter handler"
+  },
+  "onReady": {
+    "prefix": "onready",
+    "body": [
+      "fn onReady() {",
+      "  $0",
+      "}"
+    ],
+    "description": "Called when entity is first created"
+  },
+  "onDestroy": {
+    "prefix": "ondestroy",
+    "body": [
+      "fn onDestroy() {",
+      "  $0",
+      "}"
+    ],
+    "description": "Called when entity is destroyed"
+  },
+  "Variable": {
+    "prefix": "var",
+    "body": "var ${1:name}: ${2:float} = ${3:0};",
+    "description": "Declare a variable with type"
+  },
+  "Let": {
+    "prefix": "let",
+    "body": "let ${1:name} = ${2:value};",
+    "description": "Declare a local variable"
+  },
+  "Constant": {
+    "prefix": "const",
+    "body": "const ${1:NAME} = ${2:value};",
+    "description": "Declare a constant"
+  },
+  "If": {
+    "prefix": "if",
+    "body": [
+      "if (${1:condition}) {",
+      "  $0",
+      "}"
+    ],
+    "description": "If statement"
+  },
+  "If-Else": {
+    "prefix": "ife",
+    "body": [
+      "if (${1:condition}) {",
+      "  $2",
+      "} else {",
+      "  $0",
+      "}"
+    ],
+    "description": "If-else statement"
+  },
+  "For Loop": {
+    "prefix": "for",
+    "body": [
+      "for (var ${1:i}: int = 0; ${1:i} < ${2:10}; ${1:i}++) {",
+      "  $0",
+      "}"
+    ],
+    "description": "For loop"
+  },
+  "While Loop": {
+    "prefix": "while",
+    "body": [
+      "while (${1:condition}) {",
+      "  $0",
+      "}"
+    ],
+    "description": "While loop"
+  },
+  "Player Movement": {
+    "prefix": "movement",
+    "body": [
+      "let move = Input.getMovement();",
+      "this.velocity.x += move.x * ${1:speed} * dt;",
+      "this.velocity.z += move.y * ${1:speed} * dt;"
+    ],
+    "description": "Basic player movement using Input API"
+  },
+  "Jump": {
+    "prefix": "jump",
+    "body": [
+      "if (Input.isActionJustPressed(\"jump\") && this.isGrounded) {",
+      "  this.velocity.y = ${1:12.0};",
+      "  Audio.play(\"jump\");",
+      "  Particles.jumpEffect(this.position);",
+      "}"
+    ],
+    "description": "Jump with sound and particles"
+  },
+  "Play Sound": {
+    "prefix": "audio",
+    "body": "Audio.play(\"${1:sound}\");",
+    "description": "Play a sound effect"
+  },
+  "Particle Effect": {
+    "prefix": "particles",
+    "body": "Particles.${1|collectEffect,landEffect,dashEffect,jumpEffect,explosionEffect,sparkle|}(${2:this.position});",
+    "description": "Emit a particle effect"
+  },
+  "Camera Follow": {
+    "prefix": "camfollow",
+    "body": "Camera.follow(${1:this}, vec3(${2:0}, ${3:8}, ${4:12}), ${5:6});",
+    "description": "Make camera follow a target"
+  },
+  "Camera Shake": {
+    "prefix": "camshake",
+    "body": "Camera.shake(${1:0.5}, ${2:0.3});",
+    "description": "Camera shake effect"
+  },
+  "Scene Load": {
+    "prefix": "sceneload",
+    "body": "Scene.load(\"${1:level-name}\");",
+    "description": "Load a scene by name"
+  },
+  "Timer After": {
+    "prefix": "timerafter",
+    "body": [
+      "Timer.after(${1:2.0}, fn() {",
+      "  $0",
+      "});"
+    ],
+    "description": "Execute code after a delay"
+  },
+  "Timer Every": {
+    "prefix": "timerevery",
+    "body": [
+      "Timer.every(${1:1.0}, fn() {",
+      "  $0",
+      "});"
+    ],
+    "description": "Execute code at regular intervals"
+  },
+  "UI Toast": {
+    "prefix": "toast",
+    "body": "UI.toast(\"${1:message}\");",
+    "description": "Show a toast notification"
+  },
+  "UI Health Bar": {
+    "prefix": "healthbar",
+    "body": "let hpBar = UI.healthBar({ label: \"${1:HP}\", position: { top: \"${2:20px}\", left: \"${3:20px}\" } });",
+    "description": "Create a health bar UI element"
+  },
+  "UI Dialogue": {
+    "prefix": "dialogue",
+    "body": [
+      "UI.dialogue(\"${1:Speaker}\", \"${2:Hello! Welcome to the game.}\", {",
+      "  portrait: \"${3:icon}\",",
+      "  onComplete: fn() { $0 }",
+      "});"
+    ],
+    "description": "Show a dialogue box"
+  },
+  "Tween": {
+    "prefix": "tween",
+    "body": [
+      "Anim.tween(${1:this.position}, {",
+      "  ${2:y}: ${3:5.0}",
+      "}, { duration: ${4:1.0}, easing: \"${5:easeOutBounce}\" });"
+    ],
+    "description": "Animate a property with tweening"
+  },
+  "Save Data": {
+    "prefix": "save",
+    "body": "Save.save(\"${1:slot1}\", { ${2:score}: ${3:score}, ${4:level}: ${5:currentLevel} });",
+    "description": "Save game data to a slot"
+  },
+  "Load Data": {
+    "prefix": "load",
+    "body": "let data = Save.load(\"${1:slot1}\");",
+    "description": "Load game data from a slot"
+  },
+  "Event Emit": {
+    "prefix": "eventemit",
+    "body": "Events.emit(\"${1:event-name}\", ${2:data});",
+    "description": "Emit a custom event"
+  },
+  "Event Listen": {
+    "prefix": "eventon",
+    "body": [
+      "Events.on(\"${1:event-name}\", fn(${2:data}) {",
+      "  $0",
+      "});"
+    ],
+    "description": "Listen for a custom event"
+  },
+  "Spawn Entity": {
+    "prefix": "spawn",
+    "body": "spawn ${1:EntityName} { x: ${2:0}, y: ${3:0}, z: ${4:0} };",
+    "description": "Spawn an entity at a position"
+  },
+  "Destroy": {
+    "prefix": "destroy",
+    "body": "destroy(${1:this});",
+    "description": "Destroy an entity"
+  },
+  "Import": {
+    "prefix": "import",
+    "body": "import ${1:Module} from \"${2:./path}\";",
+    "description": "Import a module"
+  },
+  "Print": {
+    "prefix": "print",
+    "body": "print(${1:\"hello\"});",
+    "description": "Print to console"
+  },
+  "Random Range": {
+    "prefix": "rand",
+    "body": "randomRange(${1:0}, ${2:10})",
+    "description": "Random number between min and max"
+  },
+  "Clamp": {
+    "prefix": "clamp",
+    "body": "clamp(${1:value}, ${2:0}, ${3:1})",
+    "description": "Clamp a value between min and max"
+  },
+  "Lerp": {
+    "prefix": "lerp",
+    "body": "lerp(${1:a}, ${2:b}, ${3:t})",
+    "description": "Linear interpolation"
+  },
+  "Player Controller Template": {
+    "prefix": "player",
+    "body": [
+      "entity ${1:Player} {",
+      "  var speed: float = ${2:8.0};",
+      "  var jumpForce: float = ${3:14.0};",
+      "  var health: int = ${4:3};",
+      "",
+      "  fn onUpdate(dt: float) {",
+      "    // Movement",
+      "    let move = Input.getMovement();",
+      "    this.velocity.x += move.x * speed * dt;",
+      "    this.velocity.z += move.y * speed * dt;",
+      "",
+      "    // Jump",
+      "    if (Input.isActionJustPressed(\"jump\") && this.isGrounded) {",
+      "      this.velocity.y = jumpForce;",
+      "      Audio.play(\"jump\");",
+      "      Particles.jumpEffect(this.position);",
+      "    }",
+      "  }",
+      "",
+      "  fn onCollision(other: Entity) {",
+      "    if (other.tag == \"coin\") {",
+      "      Audio.play(\"collect\");",
+      "      Particles.collectEffect(other.position);",
+      "      destroy(other);",
+      "    }",
+      "  }",
+      "",
+      "  fn onLand() {",
+      "    Audio.play(\"land\");",
+      "    Particles.landEffect(this.position);",
+      "  }",
+      "}"
+    ],
+    "description": "Complete player controller with movement, jump, and collision"
+  },
+  "Enemy AI Template": {
+    "prefix": "enemy",
+    "body": [
+      "entity ${1:Enemy} {",
+      "  var patrolRange: float = ${2:5.0};",
+      "  var speed: float = ${3:3.0};",
+      "  var health: int = ${4:1};",
+      "",
+      "  fn onUpdate(dt: float) {",
+      "    // Patrol back and forth",
+      "    this.position.x = this.startX + sin(time() * speed) * patrolRange;",
+      "  }",
+      "",
+      "  fn onCollision(other: Entity) {",
+      "    if (other.tag == \"player\") {",
+      "      // Check if player is stomping from above",
+      "      if (other.position.y > this.position.y + 0.5) {",
+      "        Audio.play(\"bounce\");",
+      "        Particles.explosionEffect(this.position);",
+      "        destroy(this);",
+      "      } else {",
+      "        Events.emit(\"player-hurt\");",
+      "      }",
+      "    }",
+      "  }",
+      "}"
+    ],
+    "description": "Enemy with patrol AI and stomp detection"
+  },
+  "Collectible Template": {
+    "prefix": "collectible",
+    "body": [
+      "entity ${1:Coin} {",
+      "  var value: int = ${2:10};",
+      "  var bobSpeed: float = 3.0;",
+      "  var spinSpeed: float = 2.0;",
+      "",
+      "  fn onUpdate(dt: float) {",
+      "    this.rotation.y += spinSpeed * dt;",
+      "    this.position.y += sin(time() * bobSpeed) * 0.3 * dt;",
+      "  }",
+      "}"
+    ],
+    "description": "Collectible item with bobbing and spinning animation"
+  }
+}

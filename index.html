@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>NovaStar Engine — Star Hopper</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/game/styles.css">
+  <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.162.0/build/three.module.js"}}</script>
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Splash Screen -->
+  <div id="splash">
+    <h1>Star Hopper</h1>
+    <p class="subtitle">Built with NovaStar Engine v0.4.1</p>
+    <button class="start-btn" id="startBtn">▶ PLAY</button>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-panel">
+      <div class="hud-title">Stars</div>
+      <div class="hud-value gems" id="hud-gems">0</div>
+    </div>
+    <div class="hud-panel">
+      <div class="hud-title">Score</div>
+      <div class="hud-value" id="hud-score">0</div>
+    </div>
+    <div class="hud-panel">
+      <div class="hud-title">Lives</div>
+      <div class="hud-value lives" id="hud-lives">♥♥♥</div>
+    </div>
+  </div>
+
+  <div id="engine-badge">NOVASTAR ENGINE v0.4.1</div>
+  <div id="controls-hint">WASD / Arrows to move · Space to jump · Shift to dash</div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
