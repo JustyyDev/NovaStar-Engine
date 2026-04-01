@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaStar Engine — Getting Started Tutorial</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0c10; --bg-card: #12151c; --bg-code: #0d0f14; --border: #1e2430;
+      --text: #d4d8e4; --dim: #7b84a0; --muted: #4a5170;
+      --accent: #4ee6a0; --blue: #4da8ff; --purple: #a86bff; --orange: #ffa64d; --red: #ff5568; --yellow: #ffe066;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Nunito', sans-serif; line-height: 1.7; font-size: 15px; }
+
+    /* Nav */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px;
+      background: rgba(10,12,16,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 32px;
+    }
+    .nav-logo { font-family: 'Fredoka One', sans-serif; font-size: 18px; color: var(--accent); display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .nav-logo svg { width: 22px; height: 22px; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link {
+      padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; color: var(--dim);
+      text-decoration: none; transition: all 0.15s;
+    }
+    .nav-link:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .nav-link.active { color: var(--accent); background: rgba(78,230,160,0.1); }
+
+    /* Hero */
+    .hero {
+      padding: 120px 32px 80px; text-align: center; position: relative; overflow: hidden;
+      background: radial-gradient(ellipse at 50% 0%, rgba(78,230,160,0.08) 0%, transparent 60%);
+    }
+    .hero h1 {
+      font-family: 'Fredoka One', sans-serif; font-size: 52px;
+      background: linear-gradient(135deg, #4ee6a0 0%, #4da8ff 50%, #a86bff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px;
+    }
+    .hero .badge {
+      display: inline-flex; align-items: center; gap: 6px; background: rgba(78,230,160,0.1);
+      border: 1px solid rgba(78,230,160,0.2); padding: 5px 16px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 16px;
+    }
+    .hero .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .hero p { color: var(--dim); font-size: 18px; max-width: 600px; margin: 0 auto 32px; }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 10px;
+      font-size: 14px; font-weight: 800; font-family: inherit; text-decoration: none; cursor: pointer;
+      transition: all 0.2s; border: none;
+    }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-primary:hover { background: #6bf0b6; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(78,230,160,0.3); }
+    .btn-secondary { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text); }
+    .btn-secondary:hover { border-color: var(--dim); background: rgba(255,255,255,0.1); }
+
+    /* Content */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 32px; }
+    .section { padding: 80px 0; }
+    .section-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 6px;
+      font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 16px;
+    }
+    .section-badge.green { background: rgba(78,230,160,0.1); color: var(--accent); }
+    .section-badge.blue { background: rgba(77,168,255,0.1); color: var(--blue); }
+    .section-badge.purple { background: rgba(168,107,255,0.1); color: var(--purple); }
+    .section-badge.orange { background: rgba(255,166,77,0.1); color: var(--orange); }
+    .section-badge.yellow { background: rgba(255,224,102,0.1); color: var(--yellow); }
+    h2 { font-family: 'Fredoka One', sans-serif; font-size: 32px; margin-bottom: 12px; }
+    h3 { font-size: 20px; font-weight: 800; margin: 32px 0 12px; }
+    p { margin-bottom: 16px; color: var(--dim); }
+    p strong { color: var(--text); }
+
+    /* Code blocks */
+    .code-block {
+      background: var(--bg-code); border: 1px solid var(--border); border-radius: 12px;
+      margin: 20px 0 28px; overflow: hidden;
+    }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between; padding: 10px 16px;
+      background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);
+    }
+    .code-lang { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .code-copy {
+      padding: 4px 12px; border-radius: 5px; font-size: 11px; font-weight: 700;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--dim);
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .code-copy:hover { border-color: var(--accent); color: var(--accent); }
+    .code-copy.copied { border-color: var(--accent); color: var(--accent); }
+    pre {
+      padding: 20px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+      line-height: 1.8; color: var(--dim); tab-size: 2;
+    }
+    pre .kw { color: #c792ea; } /* keyword */
+    pre .fn { color: #82aaff; } /* function */
+    pre .str { color: #c3e88d; } /* string */
+    pre .num { color: #f78c6c; } /* number */
+    pre .cm { color: #546e7a; font-style: italic; } /* comment */
+    pre .type { color: #ffcb6b; } /* type */
+    pre .op { color: #89ddff; } /* operator */
+    pre .var { color: #eeffff; } /* variable */
+
+    /* Feature cards */
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 28px 0; }
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px; transition: all 0.2s;
+    }
+    .feature-card:hover { border-color: rgba(78,230,160,0.3); transform: translateY(-2px); }
+    .feature-icon {
+      width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .feature-icon.green { background: rgba(78,230,160,0.1); color: var(--accent); }
+    .feature-icon.blue { background: rgba(77,168,255,0.1); color: var(--blue); }
+    .feature-icon.purple { background: rgba(168,107,255,0.1); color: var(--purple); }
+    .feature-icon.orange { background: rgba(255,166,77,0.1); color: var(--orange); }
+    .feature-icon.yellow { background: rgba(255,224,102,0.1); color: var(--yellow); }
+    .feature-icon svg { width: 22px; height: 22px; }
+    .feature-card h4 { font-size: 15px; font-weight: 800; margin-bottom: 6px; color: var(--text); }
+    .feature-card p { font-size: 13px; margin: 0; color: var(--dim); line-height: 1.6; }
+
+    /* Steps */
+    .steps { counter-reset: step; margin: 28px 0; }
+    .step {
+      counter-increment: step; position: relative; padding-left: 64px; margin-bottom: 40px;
+    }
+    .step::before {
+      content: counter(step); position: absolute; left: 0; top: 0;
+      width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-family: 'Fredoka One', sans-serif; font-size: 18px;
+      background: rgba(78,230,160,0.1); color: var(--accent); border: 1px solid rgba(78,230,160,0.2);
+    }
+    .step h4 { font-size: 16px; font-weight: 800; margin-bottom: 8px; }
+
+    /* Callout */
+    .callout {
+      display: flex; gap: 14px; padding: 18px 20px; border-radius: 12px; margin: 24px 0;
+      border-left: 3px solid;
+    }
+    .callout.tip { background: rgba(78,230,160,0.06); border-color: var(--accent); }
+    .callout.info { background: rgba(77,168,255,0.06); border-color: var(--blue); }
+    .callout.warn { background: rgba(255,166,77,0.06); border-color: var(--orange); }
+    .callout-icon { font-size: 18px; flex-shrink: 0; line-height: 1.6; }
+    .callout p { margin: 0; font-size: 13px; }
+
+    /* Table of contents */
+    .toc {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px 28px; margin: 40px 0;
+    }
+    .toc-title { font-size: 14px; font-weight: 800; margin-bottom: 14px; }
+    .toc-list { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; }
+    .toc-list li a {
+      display: flex; align-items: center; gap: 8px; color: var(--dim); text-decoration: none;
+      font-size: 13px; font-weight: 600; padding: 4px 0; transition: color 0.15s;
+    }
+    .toc-list li a:hover { color: var(--accent); }
+    .toc-list li a::before { content: '→'; color: var(--muted); font-size: 12px; }
+
+    /* Keyboard shortcut badges */
+    kbd {
+      display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 22px;
+      padding: 0 6px; border-radius: 5px; background: var(--bg-code); border: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--dim);
+    }
+
+    /* Shortcut table */
+    .shortcut-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    .shortcut-table th, .shortcut-table td { padding: 10px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    .shortcut-table th { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+    .shortcut-table td { font-size: 13px; color: var(--dim); }
+    .shortcut-table td:first-child { color: var(--text); font-weight: 700; }
+
+    /* Footer */
+    .footer {
+      text-align: center; padding: 60px 32px; border-top: 1px solid var(--border); margin-top: 40px;
+    }
+    .footer p { color: var(--muted); font-size: 13px; }
+    .footer a { color: var(--accent); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    /* Divider */
+    .divider { height: 1px; background: var(--border); margin: 0; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 32px; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .toc-list { grid-template-columns: 1fr; }
+      nav { padding: 0 16px; }
+      .container { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav>
+  <a href="/" class="nav-logo">
+    <svg viewBox="0 0 22 22" fill="none"><polygon points="11,1 13.7,7.7 21,7.7 15,12.5 17,20 11,15.5 5,20 7,12.5 1,7.7 8.3,7.7" fill="#4ee6a0"/></svg>
+    NovaStar
+  </a>
+  <div class="nav-links">
+    <a href="#quickstart" class="nav-link active">Quick Start</a>
+    <a href="#features" class="nav-link">v0.3 Features</a>
+    <a href="#prefabs" class="nav-link">Prefabs</a>
+    <a href="#tilemap" class="nav-link">Tilemap</a>
+    <a href="#audio" class="nav-link">Audio</a>
+    <a href="#ui-system" class="nav-link">UI System</a>
+    <a href="#modeler" class="nav-link">3D Modeler</a>
+    <a href="#novascript" class="nav-link">NovaScript</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="badge"><span class="dot"></span> v0.3.0 — New Features</div>
+  <h1>Getting Started with<br>NovaStar Engine</h1>
+  <p>Build cartoony Nintendo-style 3D games with prefabs, tilemaps, audio file support, and a built-in UI system.</p>
+  <div class="hero-actions">
+    <a href="#quickstart" class="btn btn-primary">Start Building</a>
+    <a href="editor.html" class="btn btn-secondary">Open Editor</a>
+  </div>
+</section>
+
+<!-- Content -->
+<div class="container">
+
+  <!-- Table of Contents -->
+  <div class="toc">
+    <div class="toc-title">What you'll learn</div>
+    <ul class="toc-list">
+      <li><a href="#quickstart">Installation & first project</a></li>
+      <li><a href="#features">What's new in v0.3</a></li>
+      <li><a href="#prefabs">Creating & using prefabs</a></li>
+      <li><a href="#tilemap">Building levels with tilemaps</a></li>
+      <li><a href="#audio">Loading audio files (WAV/MP3/OGG)</a></li>
+      <li><a href="#ui-system">Health bars, scores, & menus</a></li>
+      <li><a href="#modeler">Built-in 3D modeler</a></li>
+      <li><a href="#novascript">NovaScript scripting</a></li>
+      <li><a href="#shortcuts">Editor keyboard shortcuts</a></li>
+    </ul>
+  </div>
+
+  <!-- Quick Start -->
+  <section class="section" id="quickstart">
+    <span class="section-badge green">Getting Started</span>
+    <h2>Quick Start</h2>
+    <p>Get NovaStar Engine running in under a minute. You'll need <strong>Node.js 18+</strong> installed.</p>
+
+    <div class="steps">
+      <div class="step">
+        <h4>Install & Run</h4>
+        <p>Clone the repo and start the dev server:</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Terminal</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="cm"># Clone and enter the project</span>
+<span class="fn">git clone</span> https://github.com/JustyyDev/NovaStar-Engine.git
+<span class="fn">cd</span> NovaStar-Engine
+
+<span class="cm"># Install dependencies</span>
+<span class="fn">npm install</span>
+
+<span class="cm"># Start the web dev server</span>
+<span class="fn">npm run</span> dev
+
+<span class="cm"># Or launch as a desktop app (recommended)</span>
+<span class="fn">npm run</span> electron:dev</pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Choose a Template</h4>
+        <p>When the editor opens, you'll see the <strong>Welcome Screen</strong> with project templates. Pick one to start with pre-configured entities, prefabs, and settings — or choose <strong>Blank Project</strong> for a clean slate.</p>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <p><strong>Tip:</strong> The <strong>3D Platformer</strong> template is the best way to learn — it comes with a player, ground, collectible stars, and all the physics pre-configured.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <h4>Add Entities</h4>
+        <p>Use the <strong>Quick Add</strong> palette at the bottom of the editor to drop entities into your scene. Click any item (Platform, Character, Star, Enemy, etc.) and it appears in the viewport.</p>
+        <p>Select entities in the <strong>Scene Hierarchy</strong> (left panel) and adjust position, rotation, and scale in the <strong>Inspector</strong> (right panel).</p>
+      </div>
+
+      <div class="step">
+        <h4>Press Play</h4>
+        <p>Hit <kbd>F5</kbd> or click the <strong>Play</strong> button to test your game. Use WASD to move, Space to jump, and Shift to dash. Press <kbd>F5</kbd> again to stop and return to the editor.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- What's New in v0.3 -->
+  <section class="section" id="features">
+    <span class="section-badge blue">What's New</span>
+    <h2>New in v0.3</h2>
+    <p>This release adds four major features that make building complete games much easier.</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon purple"><svg viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="4" fill="currentColor"/></svg></div>
+        <h4>Prefab System</h4>
+        <p>Create reusable entity templates. Edit once, update everywhere. Drag prefabs from the library to instantly spawn configured entities.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon purple"><svg viewBox="0 0 22 22" fill="none"><path d="M11 2 L19 7 V15 L11 20 L3 15 V7 Z" stroke="currentColor" stroke-width="1.8" fill="none"/><line x1="11" y1="2" x2="11" y2="20" stroke="currentColor" stroke-width="0.8" opacity="0.4"/><line x1="3" y1="7" x2="19" y2="15" stroke="currentColor" stroke-width="0.8" opacity="0.4"/></svg></div>
+        <h4>3D Modeler</h4>
+        <p>Build custom low-poly models right in the editor. Combine boxes, spheres, cylinders, and more. Save your creations as prefabs to use in-game.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green"><svg viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="currentColor"/><rect x="9" y="2" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/><rect x="16" y="2" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/><rect x="2" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/><rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/><rect x="2" y="16" width="5" height="5" rx="1" fill="currentColor" opacity="0.4"/></svg></div>
+        <h4>Tilemap Editor</h4>
+        <p>Paint tile-based levels with multiple layers and auto-generated collision. Perfect for top-down RPGs and 2D platformers.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon orange"><svg viewBox="0 0 22 22" fill="none"><path d="M3 7 H5 L9 3 V19 L5 15 H3 C2.4 15 2 14.6 2 14 V8 C2 7.4 2.4 7 3 7 Z" fill="currentColor"/><path d="M12 7 C13.5 8.5 13.5 13.5 12 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M15 5 C17.5 7.5 17.5 14.5 15 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+        <h4>Audio File Loading</h4>
+        <p>Import WAV, MP3, and OGG files alongside the built-in synthesized sounds. Full waveform preview and spatial audio support.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon yellow"><svg viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><rect x="5" y="5" width="12" height="3" rx="1" fill="currentColor" opacity="0.4"/><rect x="5" y="10" width="8" height="3" rx="1" fill="currentColor" opacity="0.3"/><rect x="5" y="15" width="5" height="3" rx="1" fill="currentColor" opacity="0.2"/></svg></div>
+        <h4>UI System</h4>
+        <p>Build health bars, score displays, buttons, timers, inventory grids, and pause menus — all from the visual editor.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Prefabs -->
+  <section class="section" id="prefabs">
+    <span class="section-badge purple">Reusable Templates</span>
+    <h2>Prefab System</h2>
+    <p>Prefabs let you create <strong>reusable entity templates</strong>. Define an entity once with all its components, then spawn instances throughout your scene. When you update the prefab, all instances update too.</p>
+
+    <h3>Creating a Prefab</h3>
+    <p>There are two ways to create prefabs:</p>
+    <p><strong>From the editor:</strong> Right-click any entity in the Scene Hierarchy and select <strong>"Make Prefab"</strong>. The entity becomes a prefab template in your library.</p>
+    <p><strong>From code:</strong></p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="kw">import</span> { <span class="type">Prefab</span>, <span class="type">PrefabLibrary</span> } <span class="kw">from</span> <span class="str">'./engine/ProjectManager.js'</span>;
+
+<span class="cm">// Create a prefab library</span>
+<span class="kw">const</span> <span class="var">library</span> <span class="op">=</span> <span class="kw">new</span> <span class="type">PrefabLibrary</span>();
+
+<span class="cm">// Define a reusable enemy prefab</span>
+<span class="kw">const</span> <span class="var">slimePrefab</span> <span class="op">=</span> <span class="var">library</span>.<span class="fn">add</span>(<span class="kw">new</span> <span class="type">Prefab</span>({
+  name: <span class="str">'Slime Enemy'</span>,
+  category: <span class="str">'enemy'</span>,
+  components: [
+    { type: <span class="str">'ToonMesh'</span>, meshType: <span class="str">'enemy'</span>, color: <span class="str">'#dd4444'</span> },
+    { type: <span class="str">'PhysicsBody'</span>, gravity: <span class="num">-25</span>, tag: <span class="str">'enemy'</span> },
+    { type: <span class="str">'PatrolAI'</span>, speed: <span class="num">2</span>, range: <span class="num">5</span> },
+    { type: <span class="str">'Health'</span>, maxHP: <span class="num">3</span> },
+  ],
+  tags: [<span class="str">'enemy'</span>],
+}));
+
+<span class="cm">// Spawn an instance at a specific position</span>
+<span class="kw">const</span> <span class="var">enemy1</span> <span class="op">=</span> <span class="var">slimePrefab</span>.<span class="fn">instantiate</span>({
+  position: { x: <span class="num">5</span>, y: <span class="num">2</span>, z: <span class="num">0</span> }
+});
+
+<span class="cm">// Spawn another instance elsewhere</span>
+<span class="kw">const</span> <span class="var">enemy2</span> <span class="op">=</span> <span class="var">slimePrefab</span>.<span class="fn">instantiate</span>({
+  name: <span class="str">'Boss Slime'</span>,
+  position: { x: <span class="num">-10</span>, y: <span class="num">2</span>, z: <span class="num">3</span> },
+  scale: { x: <span class="num">2</span>, y: <span class="num">2</span>, z: <span class="num">2</span> }
+});</pre>
+    </div>
+
+    <h3>Updating All Instances</h3>
+    <p>When you modify a prefab, use <code>applyToInstances</code> to push changes to every instance in a scene:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="cm">// Update the prefab's health component</span>
+<span class="var">slimePrefab</span>.components[<span class="num">3</span>].maxHP <span class="op">=</span> <span class="num">5</span>;
+
+<span class="cm">// Apply to all instances in the current scene</span>
+<span class="kw">const</span> <span class="var">count</span> <span class="op">=</span> <span class="var">library</span>.<span class="fn">applyToInstances</span>(<span class="var">slimePrefab</span>.id, currentScene);
+console.<span class="fn">log</span>(<span class="str">`Updated <span class="op">${</span>count<span class="op">}</span> instances`</span>);</pre>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">📌</span>
+      <p><strong>Prefab instances</strong> in the hierarchy show a purple left border and a "(prefab)" label. Instance-specific overrides (like position) are preserved when applying prefab changes.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Tilemap -->
+  <section class="section" id="tilemap">
+    <span class="section-badge green">Level Design</span>
+    <h2>Tilemap Editor</h2>
+    <p>The tilemap editor lets you <strong>paint tile-based levels</strong> directly in the editor. It supports multiple layers, a configurable tileset, and automatic collision generation.</p>
+
+    <h3>Using the Tilemap Editor</h3>
+    <p>Switch to the <strong>Tilemap Editor</strong> tab in the bottom panel. Select a tile color from the palette on the left, then click and drag on the grid to paint tiles. The editor supports paint, fill, eyedropper, and rectangle tools.</p>
+
+    <h3>Tilemap in Code</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="kw">import</span> { <span class="type">TilemapData</span> } <span class="kw">from</span> <span class="str">'./engine/ProjectManager.js'</span>;
+
+<span class="cm">// Create a 16x12 tilemap</span>
+<span class="kw">const</span> <span class="var">tilemap</span> <span class="op">=</span> <span class="kw">new</span> <span class="type">TilemapData</span>({
+  width: <span class="num">16</span>,
+  height: <span class="num">12</span>,
+  cellSize: <span class="num">1</span>,  <span class="cm">// 1 world unit per cell</span>
+});
+
+<span class="cm">// Paint individual tiles (layerIndex, x, y, tileId)</span>
+<span class="var">tilemap</span>.<span class="fn">setTile</span>(<span class="num">0</span>, <span class="num">5</span>, <span class="num">10</span>, <span class="num">1</span>);  <span class="cm">// Grass at (5,10)</span>
+<span class="var">tilemap</span>.<span class="fn">setTile</span>(<span class="num">0</span>, <span class="num">6</span>, <span class="num">10</span>, <span class="num">3</span>);  <span class="cm">// Stone at (6,10)</span>
+
+<span class="cm">// Fill a rectangular region</span>
+<span class="var">tilemap</span>.<span class="fn">fill</span>(<span class="num">0</span>, <span class="num">0</span>, <span class="num">10</span>, <span class="num">15</span>, <span class="num">11</span>, <span class="num">1</span>);  <span class="cm">// Grass floor</span>
+
+<span class="cm">// Generate physics colliders from solid tiles</span>
+<span class="kw">const</span> <span class="var">colliders</span> <span class="op">=</span> <span class="var">tilemap</span>.<span class="fn">generateColliders</span>();
+<span class="cm">// Returns array of { position, halfExtents, isStatic, tag }</span></pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <p><strong>Auto-collision:</strong> The tilemap automatically generates optimized AABB colliders from solid tiles using greedy meshing. No manual collision setup needed.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Audio -->
+  <section class="section" id="audio">
+    <span class="section-badge orange">Sound Design</span>
+    <h2>Audio File Loading</h2>
+    <p>v0.3 adds support for loading external audio files alongside the built-in synthesized sounds. Import <strong>WAV</strong>, <strong>MP3</strong>, and <strong>OGG</strong> files for custom sound effects and music.</p>
+
+    <h3>Importing Audio in the Editor</h3>
+    <p>Open the <strong>Audio</strong> tab in the right panel. Click <strong>"Import Audio File"</strong> to add files. You'll see a waveform preview, format info, and playback controls for each imported sound.</p>
+
+    <h3>Using Audio in Code</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="cm">// Built-in synthesized sounds still work</span>
+<span class="var">engine</span>.audio.<span class="fn">play</span>(<span class="str">'jump'</span>);
+<span class="var">engine</span>.audio.<span class="fn">play</span>(<span class="str">'collect'</span>);
+
+<span class="cm">// Load and play external audio files</span>
+<span class="kw">const</span> <span class="var">bgMusic</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">engine</span>.audio.<span class="fn">loadFile</span>(<span class="str">'assets/bg_music.mp3'</span>);
+<span class="var">engine</span>.audio.<span class="fn">playLoaded</span>(<span class="var">bgMusic</span>, {
+  loop: <span class="num">true</span>,
+  volume: <span class="num">0.6</span>,
+  category: <span class="str">'music'</span>
+});
+
+<span class="cm">// Spatial audio: attach sound to an entity</span>
+<span class="var">engine</span>.audio.<span class="fn">playSpatial</span>(<span class="str">'waterfall.ogg'</span>, {
+  position: <span class="var">entity</span>.transform.position,
+  maxDistance: <span class="num">20</span>,
+  rolloff: <span class="num">1.5</span>
+});</pre>
+    </div>
+
+    <p>The built-in synthesized sounds (<code>jump</code>, <code>collect</code>, <code>dash</code>, <code>bounce</code>, <code>hurt</code>, <code>powerup</code>, <code>explosion</code>, etc.) are still available and require no file loading.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- UI System -->
+  <section class="section" id="ui-system">
+    <span class="section-badge yellow">Game Interface</span>
+    <h2>Basic UI System</h2>
+    <p>Build in-game interfaces with the new UI system. Create <strong>health bars</strong>, <strong>score displays</strong>, <strong>buttons</strong>, <strong>timers</strong>, <strong>inventory grids</strong>, and <strong>menu screens</strong> — either visually in the editor or via code.</p>
+
+    <h3>Adding UI in the Editor</h3>
+    <p>Switch to the <strong>UI</strong> tab in the right panel. Click any UI element to add it to the scene. Position and configure it in the Inspector.</p>
+
+    <h3>UI in Code</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="kw">import</span> { <span class="type">UIElement</span> } <span class="kw">from</span> <span class="str">'./engine/ProjectManager.js'</span>;
+
+<span class="cm">// Create a health bar</span>
+<span class="kw">const</span> <span class="var">healthBar</span> <span class="op">=</span> <span class="kw">new</span> <span class="type">UIElement</span>({
+  type: <span class="str">'healthBar'</span>,
+  anchor: { x: <span class="num">0</span>, y: <span class="num">0</span> },     <span class="cm">// top-left</span>
+  offset: { x: <span class="num">20</span>, y: <span class="num">20</span> },
+  size: { width: <span class="num">200</span>, height: <span class="num">24</span> },
+  properties: {
+    maxValue: <span class="num">100</span>,
+    currentValue: <span class="num">100</span>,
+    barColor: <span class="str">'#4ee6a0'</span>,
+    showLabel: <span class="num">true</span>
+  }
+});
+
+<span class="cm">// Create a score display</span>
+<span class="kw">const</span> <span class="var">score</span> <span class="op">=</span> <span class="kw">new</span> <span class="type">UIElement</span>({
+  type: <span class="str">'scoreDisplay'</span>,
+  anchor: { x: <span class="num">1</span>, y: <span class="num">0</span> },     <span class="cm">// top-right</span>
+  offset: { x: <span class="num">-20</span>, y: <span class="num">20</span> },
+  properties: {
+    score: <span class="num">0</span>,
+    prefix: <span class="str">'Stars: '</span>,
+    color: <span class="str">'#ffe066'</span>
+  }
+});
+
+<span class="cm">// Update UI at runtime</span>
+<span class="var">healthBar</span>.properties.currentValue <span class="op">=</span> <span class="num">75</span>;
+<span class="var">score</span>.properties.score <span class="op">+=</span> <span class="num">1</span>;</pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <p><strong>Note:</strong> UI elements use screen-space positioning with anchors (0–1). Anchor <code>{x:0, y:0}</code> is top-left, <code>{x:1, y:1}</code> is bottom-right. The offset is in pixels from the anchor point.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- 3D Modeler -->
+  <section class="section" id="modeler">
+    <span class="section-badge purple">Create Models</span>
+    <h2>Built-in 3D Modeler</h2>
+    <p>NovaStar has a built-in 3D model builder so you can create custom low-poly models right inside the editor. No external software needed. Build characters, props, buildings, weapons, anything you can think of.</p>
+
+    <h3>How It Works</h3>
+    <p>Switch to the <strong>3D Modeler</strong> tab in the bottom panel. Click <strong>"+ New Model"</strong> to start, or pick one of the presets (House, Tree, Vehicle, Sword, Gem) to get a head start. Then use the primitive buttons (Box, Sphere, Cylinder, Cone, Torus, Plane) to add shapes. Each shape can be moved, rotated, scaled, and colored independently.</p>
+    <p>When you're happy with your model, hit the purple <strong>Save as Prefab</strong> button to turn it into a reusable prefab. Then you can spawn copies of it all over your game.</p>
+
+    <h3>Modeler in Code</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">JavaScript</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="kw">import</span> { <span class="type">ModelBuilder</span> } <span class="kw">from</span> <span class="str">'./engine/ModelBuilder.js'</span>;
+
+<span class="kw">const</span> <span class="var">modeler</span> <span class="op">=</span> <span class="kw">new</span> <span class="type">ModelBuilder</span>(<span class="var">engine</span>);
+
+<span class="cm">// build a custom house</span>
+<span class="kw">const</span> <span class="var">house</span> <span class="op">=</span> <span class="var">modeler</span>.<span class="fn">create</span>(<span class="str">'My House'</span>);
+<span class="var">modeler</span>.<span class="fn">addPrimitive</span>(<span class="var">house</span>, <span class="str">'box'</span>, {
+  size: { x: <span class="num">2</span>, y: <span class="num">1.5</span>, z: <span class="num">2</span> },
+  color: <span class="str">'#cc8844'</span>,
+  position: { x: <span class="num">0</span>, y: <span class="num">0.75</span>, z: <span class="num">0</span> }
+});
+<span class="var">modeler</span>.<span class="fn">addPrimitive</span>(<span class="var">house</span>, <span class="str">'cone'</span>, {
+  radius: <span class="num">1.5</span>, height: <span class="num">1.2</span>, segments: <span class="num">4</span>,
+  color: <span class="str">'#dd4444'</span>,
+  position: { x: <span class="num">0</span>, y: <span class="num">2.1</span>, z: <span class="num">0</span> }
+});
+
+<span class="cm">// or use a preset to get started fast</span>
+<span class="kw">const</span> <span class="var">tree</span> <span class="op">=</span> <span class="var">modeler</span>.<span class="fn">presetTree</span>(<span class="str">'My Tree'</span>);
+<span class="kw">const</span> <span class="var">sword</span> <span class="op">=</span> <span class="var">modeler</span>.<span class="fn">presetSword</span>(<span class="str">'Cool Sword'</span>);
+
+<span class="cm">// show it in the scene</span>
+<span class="var">modeler</span>.<span class="fn">showInScene</span>(<span class="var">house</span>);
+
+<span class="cm">// turn it into a prefab for your game</span>
+<span class="kw">const</span> <span class="var">prefabData</span> <span class="op">=</span> <span class="var">modeler</span>.<span class="fn">toPrefab</span>(<span class="var">house</span>, <span class="str">'House'</span>);
+
+<span class="cm">// or spawn it directly into the scene</span>
+<span class="var">modeler</span>.<span class="fn">spawnModel</span>(<span class="var">house</span>, { x: <span class="num">5</span>, y: <span class="num">0</span>, z: <span class="num">3</span> });</pre>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <p><strong>Presets are a great starting point.</strong> Try <code>presetHouse()</code>, <code>presetTree()</code>, <code>presetVehicle()</code>, <code>presetSword()</code>, or <code>presetGem()</code>, then customize the parts to make them your own.</p>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">📌</span>
+      <p>Models can be exported as <code>.novamodel</code> files and shared between projects. You can also import them back into the modeler to keep editing.</p>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- NovaScript -->
+  <section class="section" id="novascript">
+    <span class="section-badge purple">Scripting</span>
+    <h2>NovaScript Language</h2>
+    <p>NovaScript is NovaStar's custom scripting language — a readable mix of C-style syntax designed for game entities. Use it to define behaviors, handle collisions, and control game logic.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">NovaScript</span><button class="code-copy" onclick="copyCode(this)">Copy</button></div>
+<pre><span class="kw">entity</span> <span class="type">Player</span> {
+  <span class="kw">var</span> <span class="var">speed</span>: <span class="type">float</span> <span class="op">=</span> <span class="num">5.0</span>;
+  <span class="kw">var</span> <span class="var">jumpForce</span>: <span class="type">float</span> <span class="op">=</span> <span class="num">12.0</span>;
+  <span class="kw">var</span> <span class="var">stars</span>: <span class="type">int</span> <span class="op">=</span> <span class="num">0</span>;
+
+  <span class="kw">fn</span> <span class="fn">onUpdate</span>(<span class="var">dt</span>: <span class="type">float</span>) {
+    <span class="kw">let</span> <span class="var">move</span> <span class="op">=</span> Input.<span class="fn">getMovement</span>();
+    <span class="kw">this</span>.velocity.x <span class="op">+=</span> <span class="var">move</span>.x <span class="op">*</span> <span class="var">speed</span> <span class="op">*</span> <span class="var">dt</span>;
+
+    <span class="kw">if</span> (Input.<span class="fn">isActionJustPressed</span>(<span class="str">"jump"</span>) <span class="op">&&</span> <span class="kw">this</span>.isGrounded) {
+      <span class="kw">this</span>.velocity.y <span class="op">=</span> <span class="var">jumpForce</span>;
+      Audio.<span class="fn">play</span>(<span class="str">"jump"</span>);
+      Particles.<span class="fn">jumpEffect</span>(<span class="kw">this</span>.position);
+    }
+  }
+
+  <span class="kw">fn</span> <span class="fn">onCollision</span>(<span class="var">other</span>: <span class="type">Entity</span>) {
+    <span class="kw">if</span> (<span class="var">other</span>.tag <span class="op">==</span> <span class="str">"coin"</span>) {
+      <span class="fn">destroy</span>(<span class="var">other</span>);
+      Audio.<span class="fn">play</span>(<span class="str">"collect"</span>);
+      Particles.<span class="fn">collectEffect</span>(<span class="var">other</span>.position);
+      <span class="var">stars</span> <span class="op">+=</span> <span class="num">1</span>;
+    }
+
+    <span class="kw">if</span> (<span class="var">other</span>.tag <span class="op">==</span> <span class="str">"enemy"</span>) {
+      Audio.<span class="fn">play</span>(<span class="str">"hurt"</span>);
+      <span class="kw">this</span>.velocity.y <span class="op">=</span> <span class="num">8.0</span>; <span class="cm">// bounce off</span>
+    }
+  }
+}</pre>
+    </div>
+
+    <p>You can test NovaScript commands live in the <strong>Console</strong> panel at the bottom of the editor.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Keyboard Shortcuts -->
+  <section class="section" id="shortcuts">
+    <span class="section-badge blue">Reference</span>
+    <h2>Editor Shortcuts</h2>
+    <table class="shortcut-table">
+      <thead><tr><th>Action</th><th>Shortcut</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Select Tool</td><td><kbd>V</kbd></td><td>Click to select entities</td></tr>
+        <tr><td>Move Tool</td><td><kbd>G</kbd></td><td>Drag gizmo arrows to move</td></tr>
+        <tr><td>Rotate Tool</td><td><kbd>R</kbd></td><td>Drag gizmo rings to rotate</td></tr>
+        <tr><td>Scale Tool</td><td><kbd>S</kbd></td><td>Drag gizmo handles to scale</td></tr>
+        <tr><td>Play / Stop</td><td><kbd>F5</kbd></td><td>Test your game in the viewport</td></tr>
+        <tr><td>Delete Entity</td><td><kbd>Del</kbd></td><td>Remove selected entity</td></tr>
+        <tr><td>Duplicate</td><td><kbd>Ctrl</kbd> + <kbd>D</kbd></td><td>Clone the selected entity</td></tr>
+        <tr><td>Undo</td><td><kbd>Ctrl</kbd> + <kbd>Z</kbd></td><td>Undo last action</td></tr>
+        <tr><td>Redo</td><td><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td><td>Redo last undone action</td></tr>
+        <tr><td>Save</td><td><kbd>Ctrl</kbd> + <kbd>S</kbd></td><td>Save project as .novastar file</td></tr>
+        <tr><td>Open</td><td><kbd>Ctrl</kbd> + <kbd>O</kbd></td><td>Load a .novastar project</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>NovaStar Engine v0.3.0 — <a href="https://github.com/JustyyDev/NovaStar-Engine">GitHub</a> — MIT License</p>
+  <p style="margin-top:8px;">Built with love for game developers who dream big and start small.</p>
+</footer>
+
+<script>
+  // Copy button logic
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // Active nav link on scroll
+  const sections = document.querySelectorAll('.section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY + 100;
+    sections.forEach(section => {
+      const top = section.offsetTop;
+      const height = section.offsetHeight;
+      const id = section.getAttribute('id');
+      if (scrollY >= top && scrollY < top + height) {
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === `#${id}`) link.classList.add('active');
+        });
+      }
+    });
+  });
+</script>
+</body>
+</html>

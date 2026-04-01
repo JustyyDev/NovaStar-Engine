@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Five Nights at NovaStar's — NovaStar Engine Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#000;font-family:'Segoe UI',sans-serif;color:#fff;cursor:default;user-select:none}
+canvas{display:block;width:100vw;height:100vh}
+
+/* ===== SPLASH ===== */
+#splash{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;transition:opacity .5s}
+#splash.hidden{opacity:0;pointer-events:none}
+#splash h1{font-size:48px;font-weight:900;letter-spacing:-1px;margin-bottom:4px}
+#splash h1 span{color:#ff4444}
+#splash .sub{color:#666;font-size:14px;margin-bottom:8px}
+#splash .engine{color:#4ee6a0;font-size:12px;font-weight:700;margin-bottom:40px}
+#splash button{background:#ff4444;color:#fff;border:none;padding:16px 48px;border-radius:12px;font-size:18px;font-weight:800;cursor:pointer;transition:all .2s;font-family:inherit}
+#splash button:hover{background:#ff6666;transform:scale(1.05);box-shadow:0 0 40px rgba(255,68,68,.4)}
+#splash .hint{color:#444;font-size:11px;margin-top:24px}
+
+/* ===== HUD ===== */
+#hud{position:fixed;inset:0;z-index:10;pointer-events:none}
+#time-display{position:absolute;top:16px;right:24px;font-size:28px;font-weight:900;letter-spacing:2px;text-shadow:0 0 20px rgba(255,255,255,.3)}
+#night-display{position:absolute;top:48px;right:24px;font-size:13px;color:#888;font-weight:700}
+#power-bar{position:absolute;bottom:24px;left:24px}
+#power-label{font-size:11px;color:#888;font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+#power-outer{width:200px;height:12px;background:#1a1a1a;border-radius:6px;border:1px solid #333;overflow:hidden}
+#power-inner{height:100%;background:linear-gradient(90deg,#4ee6a0,#44cc88);border-radius:6px;transition:width .3s;width:100%}
+#power-inner.low{background:linear-gradient(90deg,#ff4444,#ff8844)}
+#power-pct{font-size:20px;font-weight:900;margin-top:4px}
+#usage-display{font-size:10px;color:#555;margin-top:2px}
+
+/* ===== CAMERA MONITOR ===== */
+#cam-overlay{position:fixed;inset:0;z-index:50;display:none;background:rgba(0,0,0,.92)}
+#cam-overlay.open{display:flex;flex-direction:column}
+#cam-header{padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #222}
+#cam-header h3{font-size:14px;color:#4ee6a0;font-weight:800;letter-spacing:1px}
+#cam-close{background:none;border:1px solid #333;color:#888;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;pointer-events:auto;font-family:inherit}
+#cam-close:hover{border-color:#ff4444;color:#ff4444}
+#cam-feed{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
+#cam-feed canvas{border-radius:8px;border:2px solid #222;image-rendering:pixelated}
+#cam-static{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.03) 2px,rgba(255,255,255,.03) 4px);pointer-events:none;opacity:.5}
+#cam-name{position:absolute;top:12px;left:16px;font-size:11px;color:#4ee6a0;font-weight:700;letter-spacing:1px;text-shadow:0 0 10px rgba(78,230,160,.5)}
+#cam-rec{position:absolute;top:12px;right:16px;font-size:11px;color:#ff4444;font-weight:700;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+#cam-tabs{padding:12px 20px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;border-top:1px solid #222}
+.cam-tab{background:#111;border:1px solid #222;color:#888;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;pointer-events:auto;font-family:inherit;transition:all .15s}
+.cam-tab:hover{border-color:#4ee6a0;color:#4ee6a0}
+.cam-tab.active{background:#1a3d2e;border-color:#4ee6a0;color:#4ee6a0}
+
+/* ===== OFFICE UI ===== */
+#office-ui{position:fixed;bottom:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:flex-end;padding:0 12px 12px;pointer-events:none}
+.door-panel{pointer-events:auto;display:flex;flex-direction:column;gap:6px;align-items:center}
+.door-btn{width:100px;padding:10px;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer;border:none;font-family:inherit;transition:all .15s;text-transform:uppercase;letter-spacing:1px}
+.door-btn.door{background:#333;color:#aaa}.door-btn.door.closed{background:#ff4444;color:#fff}
+.door-btn.light{background:#222;color:#666}.door-btn.light.on{background:#ffd84d;color:#222}
+#cam-toggle{pointer-events:auto;background:#111;border:2px solid #333;color:#888;padding:14px 32px;border-radius:12px;cursor:pointer;font-size:13px;font-weight:800;font-family:inherit;transition:all .15s}
+#cam-toggle:hover{border-color:#4ee6a0;color:#4ee6a0}
+
+/* ===== JUMPSCARE ===== */
+#jumpscare{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:#000}
+#jumpscare.show{display:flex}
+#jumpscare .scare-face{font-size:200px;animation:scarePop .15s ease-out,scareShake .1s ease-in-out 4}
+@keyframes scarePop{from{transform:scale(3);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes scareShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-20px)}75%{transform:translateX(20px)}}
+
+/* ===== GAME OVER ===== */
+#gameover{position:fixed;inset:0;z-index:250;display:none;flex-direction:column;align-items:center;justify-content:center;background:#0a0a0a}
+#gameover.show{display:flex}
+#gameover h2{font-size:52px;font-weight:900;color:#ff4444;margin-bottom:8px}
+#gameover p{color:#666;font-size:14px;margin-bottom:32px}
+#gameover button{background:#333;color:#fff;border:none;padding:12px 36px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+#gameover button:hover{background:#ff4444}
+
+/* ===== WIN SCREEN ===== */
+#win{position:fixed;inset:0;z-index:250;display:none;flex-direction:column;align-items:center;justify-content:center;background:#0a0a0a}
+#win.show{display:flex}
+#win h2{font-size:42px;font-weight:900;color:#4ee6a0;margin-bottom:8px}
+#win .stars{font-size:48px;margin-bottom:8px}
+#win p{color:#666;font-size:14px;margin-bottom:32px}
+
+/* ===== CROSSHAIR ===== */
+#crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:4px;background:#fff;border-radius:50%;z-index:15;opacity:.4;display:none;pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<!-- Splash -->
+<div id="splash">
+  <h1>Five Nights at <span>NovaStar's</span></h1>
+  <div class="sub">A FNAF-style demo game</div>
+  <div class="engine">Built with NovaStar Engine v0.4.2</div>
+  <button id="playBtn">START NIGHT</button>
+  <div class="hint">Survive until 6 AM. Watch the cameras. Close the doors. Don't run out of power.</div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="time-display">12 AM</div>
+  <div id="night-display">Night 1</div>
+  <div id="power-bar">
+    <div id="power-label">Power</div>
+    <div id="power-outer"><div id="power-inner"></div></div>
+    <div id="power-pct">100%</div>
+    <div id="usage-display">Usage: 1x</div>
+  </div>
+</div>
+
+<!-- Office UI -->
+<div id="office-ui">
+  <div class="door-panel">
+    <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:1px">LEFT</div>
+    <button class="door-btn door" id="door-left" onclick="toggleDoor('left')">DOOR</button>
+    <button class="door-btn light" id="light-left" onmousedown="lightOn('left')" onmouseup="lightOff('left')" onmouseleave="lightOff('left')">LIGHT</button>
+  </div>
+  <button id="cam-toggle" onclick="toggleCameras()">CAMERAS</button>
+  <div class="door-panel">
+    <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:1px">RIGHT</div>
+    <button class="door-btn door" id="door-right" onclick="toggleDoor('right')">DOOR</button>
+    <button class="door-btn light" id="light-right" onmousedown="lightOn('right')" onmouseup="lightOff('right')" onmouseleave="lightOff('right')">LIGHT</button>
+  </div>
+</div>
+
+<!-- Camera Monitor -->
+<div id="cam-overlay">
+  <div id="cam-header"><h3>SECURITY CAMERAS</h3><button id="cam-close" onclick="toggleCameras()">CLOSE [ESC]</button></div>
+  <div id="cam-feed">
+    <canvas id="cam-canvas" width="640" height="360"></canvas>
+    <div id="cam-static"></div>
+    <div id="cam-name">CAM 1A - SHOW STAGE</div>
+    <div id="cam-rec">● REC</div>
+  </div>
+  <div id="cam-tabs">
+    <button class="cam-tab active" onclick="switchCam(0,this)">1A Stage</button>
+    <button class="cam-tab" onclick="switchCam(1,this)">1B Dining</button>
+    <button class="cam-tab" onclick="switchCam(2,this)">2A W. Hall</button>
+    <button class="cam-tab" onclick="switchCam(3,this)">2B E. Hall</button>
+    <button class="cam-tab" onclick="switchCam(4,this)">3 Backstage</button>
+    <button class="cam-tab" onclick="switchCam(5,this)">4A Kitchen</button>
+    <button class="cam-tab" onclick="switchCam(6,this)">4B Closet</button>
+  </div>
+</div>
+
+<!-- Jumpscare -->
+<div id="jumpscare"><div class="scare-face"></div></div>
+
+<!-- Game Over -->
+<div id="gameover"><h2>GAME OVER</h2><p>The animatronics got you...</p><button onclick="location.reload()">Try Again</button></div>
+
+<!-- Win -->
+<div id="win"><div class="stars">⭐⭐⭐</div><h2>6 AM — YOU SURVIVED!</h2><p>Night 1 complete. You made it to morning.</p><button onclick="location.reload()">Play Again</button></div>
+
+<div id="crosshair"></div>
+
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.162.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+
+// ═══════════════════════════════════════════════════════
+// GAME CONFIG
+// ═══════════════════════════════════════════════════════
+const NIGHT_DURATION = 90; // seconds for a full night (6 hours in-game)
+const HOUR_DURATION = NIGHT_DURATION / 6;
+const START_POWER = 100;
+const POWER_DRAIN_BASE = 0.08; // per second at 1x usage
+const POWER_DRAIN_PER_DEVICE = 0.06; // extra per door/light/camera
+
+// Animatronic configs
+const ANIMATRONICS = [
+  { name: 'NovaBot', emoji: '🤖', color: '#4da8ff', startCam: 0, aggression: 2, path: [0,1,2], targetDoor: 'left', moveInterval: [8,15] },
+  { name: 'StarFox', emoji: '🦊', color: '#ff8a3d', startCam: 0, aggression: 1.5, path: [0,1,3], targetDoor: 'right', moveInterval: [10,18] },
+  { name: 'PixelBear', emoji: '🐻', color: '#a86bff', startCam: 4, aggression: 1, path: [4,5,6,3], targetDoor: 'right', moveInterval: [12,22] },
+];
+
+const CAM_NAMES = ['1A - Show Stage','1B - Dining Area','2A - West Hall','2B - East Hall','3 - Backstage','4A - Kitchen','4B - Supply Closet'];
+
+// ═══════════════════════════════════════════════════════
+// 3D SCENE SETUP
+// ═══════════════════════════════════════════════════════
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.6;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a12);
+scene.fog = new THREE.Fog(0x0a0a12, 2, 12);
+
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 50);
+camera.position.set(0, 1.5, 0);
+
+// Lighting - dark office
+const ambientLight = new THREE.AmbientLight(0x111122, 0.3);
+scene.add(ambientLight);
+
+const deskLamp = new THREE.PointLight(0xffeedd, 0.8, 6, 2);
+deskLamp.position.set(0, 2.2, -0.5);
+deskLamp.castShadow = true;
+scene.add(deskLamp);
+
+// Office geometry
+const floorGeo = new THREE.PlaneGeometry(8, 8);
+floorGeo.rotateX(-Math.PI / 2);
+const floorMat = new THREE.MeshStandardMaterial({ color: 0x1a1a22, roughness: 0.9 });
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Walls
+const wallMat = new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.8 });
+const addWall = (w, h, x, y, z, ry = 0) => {
+  const geo = new THREE.PlaneGeometry(w, h);
+  const wall = new THREE.Mesh(geo, wallMat);
+  wall.position.set(x, y, z);
+  wall.rotation.y = ry;
+  wall.receiveShadow = true;
+  scene.add(wall);
+};
+addWall(8, 3, 0, 1.5, -4, 0);           // back wall
+addWall(8, 3, -4, 1.5, 0, Math.PI / 2);  // left wall
+addWall(8, 3, 4, 1.5, 0, -Math.PI / 2);  // right wall
+
+// Desk
+const deskGeo = new THREE.BoxGeometry(2.5, 0.08, 1.2);
+const deskMat = new THREE.MeshStandardMaterial({ color: 0x3a2820, roughness: 0.7 });
+const desk = new THREE.Mesh(deskGeo, deskMat);
+desk.position.set(0, 0.85, -1);
+desk.castShadow = true;
+scene.add(desk);
+
+// Monitor on desk
+const monGeo = new THREE.BoxGeometry(0.8, 0.5, 0.05);
+const monMat = new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x112211, emissiveIntensity: 0.3, roughness: 0.3 });
+const monitor = new THREE.Mesh(monGeo, monMat);
+monitor.position.set(0, 1.35, -1.2);
+monitor.castShadow = true;
+scene.add(monitor);
+
+// Fan on desk
+const fanGroup = new THREE.Group();
+const fanBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.15, 8), new THREE.MeshStandardMaterial({ color: 0x555555 }));
+fanBase.position.y = 0.93;
+fanGroup.add(fanBase);
+const fanBlade = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.02, 0.02), new THREE.MeshStandardMaterial({ color: 0x888888 }));
+fanBlade.position.y = 1.05;
+fanGroup.add(fanBlade);
+fanGroup.position.set(0.8, 0, -0.8);
+scene.add(fanGroup);
+
+// Door frames (left and right)
+const doorFrameMat = new THREE.MeshStandardMaterial({ color: 0x444455, roughness: 0.7 });
+const leftDoor = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.8, 1.5), new THREE.MeshStandardMaterial({ color: 0x333344, metalness: 0.3, roughness: 0.5 }));
+leftDoor.position.set(-3.2, 1.4, 0);
+leftDoor.visible = false; // starts open
+scene.add(leftDoor);
+
+const rightDoor = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.8, 1.5), new THREE.MeshStandardMaterial({ color: 0x333344, metalness: 0.3, roughness: 0.5 }));
+rightDoor.position.set(3.2, 1.4, 0);
+rightDoor.visible = false;
+scene.add(rightDoor);
+
+// Hall lights
+const leftHallLight = new THREE.PointLight(0xffffff, 0, 5, 2);
+leftHallLight.position.set(-3.5, 2, 0);
+scene.add(leftHallLight);
+
+const rightHallLight = new THREE.PointLight(0xffffff, 0, 5, 2);
+rightHallLight.position.set(3.5, 2, 0);
+scene.add(rightHallLight);
+
+// Animatronic figures (simple 3D representations)
+const animatronicMeshes = ANIMATRONICS.map(a => {
+  const group = new THREE.Group();
+  // Body
+  const bodyMat = new THREE.MeshStandardMaterial({ color: a.color, roughness: 0.6, metalness: 0.2 });
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.25, 1.2, 8), bodyMat);
+  body.position.y = 0.8;
+  group.add(body);
+  // Head
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), bodyMat);
+  head.position.y = 1.7;
+  group.add(head);
+  // Eyes (glowing)
+  const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+  [-0.1, 0.1].forEach(x => {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 4), eyeMat);
+    eye.position.set(x, 1.75, 0.22);
+    group.add(eye);
+  });
+  group.visible = false;
+  scene.add(group);
+  return group;
+});
+
+// ═══════════════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════════════
+let started = false;
+let gameOver = false;
+let won = false;
+let power = START_POWER;
+let gameTime = 0; // seconds elapsed
+let currentHour = 12; // 12 AM
+let camerasOpen = false;
+let currentCam = 0;
+let doorsClosed = { left: false, right: false };
+let lightsOn = { left: false, right: false };
+let lookAngle = 0; // office look left/right
+const lookSpeed = 1.5;
+const maxLook = 0.8;
+
+// Animatronic state
+const animState = ANIMATRONICS.map((a, i) => ({
+  ...a,
+  currentCam: a.startCam,
+  atDoor: false,
+  moveTimer: a.moveInterval[0] + Math.random() * (a.moveInterval[1] - a.moveInterval[0]),
+  attacking: false,
+  pathIndex: 0,
+}));
+
+// Camera scene for monitor
+const camCanvas = document.getElementById('cam-canvas');
+const camCtx = camCanvas.getContext('2d');
+
+// ═══════════════════════════════════════════════════════
+// GAME LOGIC
+// ═══════════════════════════════════════════════════════
+function getPowerUsage() {
+  let usage = 1;
+  if (doorsClosed.left) usage++;
+  if (doorsClosed.right) usage++;
+  if (lightsOn.left) usage++;
+  if (lightsOn.right) usage++;
+  if (camerasOpen) usage++;
+  return usage;
+}
+
+function updatePower(dt) {
+  const usage = getPowerUsage();
+  power -= (POWER_DRAIN_BASE + POWER_DRAIN_PER_DEVICE * (usage - 1)) * dt;
+  power = Math.max(0, power);
+
+  document.getElementById('power-inner').style.width = power + '%';
+  document.getElementById('power-inner').className = power < 20 ? 'low' : '';
+  document.getElementById('power-pct').textContent = Math.ceil(power) + '%';
+  document.getElementById('power-pct').style.color = power < 20 ? '#ff4444' : '#fff';
+  document.getElementById('usage-display').textContent = 'Usage: ' + usage + 'x';
+
+  if (power <= 0) {
+    // Power out — doors open, everything off
+    doorsClosed.left = false; doorsClosed.right = false;
+    lightsOn.left = false; lightsOn.right = false;
+    leftDoor.visible = false; rightDoor.visible = false;
+    leftHallLight.intensity = 0; rightHallLight.intensity = 0;
+    deskLamp.intensity = 0;
+    if (camerasOpen) toggleCameras();
+    // Animatronics will get you soon...
+    setTimeout(() => { if (!gameOver && !won) triggerJumpscare(0); }, 3000 + Math.random() * 4000);
+  }
+}
+
+function updateTime(dt) {
+  gameTime += dt;
+  const hour = Math.floor(gameTime / HOUR_DURATION);
+  currentHour = hour >= 6 ? 6 : (hour === 0 ? 12 : hour);
+
+  const display = currentHour === 12 ? '12 AM' : currentHour === 6 ? '6 AM' : currentHour + ' AM';
+  document.getElementById('time-display').textContent = display;
+
+  if (gameTime >= NIGHT_DURATION && !gameOver && !won) {
+    winGame();
+  }
+}
+
+function updateAnimatronics(dt) {
+  animState.forEach((a, idx) => {
+    if (a.attacking || gameOver || won) return;
+
+    a.moveTimer -= dt;
+    if (a.moveTimer <= 0) {
+      // Try to move
+      a.moveTimer = a.moveInterval[0] + Math.random() * (a.moveInterval[1] - a.moveInterval[0]);
+
+      // Aggression check — higher = more likely to move
+      const roll = Math.random() * 20;
+      if (roll > a.aggression + (gameTime / NIGHT_DURATION) * 5) return;
+
+      if (a.atDoor) {
+        // At door — check if door is closed
+        if (doorsClosed[a.targetDoor]) {
+          // Blocked! Go back
+          a.atDoor = false;
+          a.pathIndex = Math.max(0, a.pathIndex - 1);
+          a.currentCam = a.path[a.pathIndex];
+        } else {
+          // Door open — ATTACK!
+          triggerJumpscare(idx);
+        }
+      } else {
+        // Move along path
+        a.pathIndex++;
+        if (a.pathIndex >= a.path.length) {
+          // Reached the door
+          a.atDoor = true;
+          a.currentCam = -1; // not on any camera
+        } else {
+          a.currentCam = a.path[a.pathIndex];
+        }
+      }
+    }
+  });
+
+  // Update animatronic 3D positions for hallway visibility
+  animState.forEach((a, idx) => {
+    const mesh = animatronicMeshes[idx];
+    if (a.atDoor) {
+      // Show at door if light is on
+      const side = a.targetDoor;
+      if (lightsOn[side]) {
+        mesh.visible = true;
+        mesh.position.set(side === 'left' ? -3.5 : 3.5, 0, 0);
+        mesh.rotation.y = side === 'left' ? Math.PI / 2 : -Math.PI / 2;
+      } else {
+        mesh.visible = false;
+      }
+    } else {
+      mesh.visible = false;
+    }
+  });
+}
+
+function triggerJumpscare(animIndex) {
+  if (gameOver || won) return;
+  gameOver = true;
+
+  const a = ANIMATRONICS[animIndex];
+  const el = document.getElementById('jumpscare');
+  el.querySelector('.scare-face').textContent = a.emoji;
+  el.querySelector('.scare-face').style.color = a.color;
+  el.classList.add('show');
+
+  // Shake the camera
+  const shakeInterval = setInterval(() => {
+    camera.rotation.z = (Math.random() - 0.5) * 0.15;
+    camera.rotation.x += (Math.random() - 0.5) * 0.05;
+  }, 30);
+
+  setTimeout(() => {
+    clearInterval(shakeInterval);
+    camera.rotation.z = 0;
+    el.classList.remove('show');
+    document.getElementById('gameover').classList.add('show');
+  }, 800);
+}
+
+function winGame() {
+  won = true;
+  document.getElementById('win').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════
+// CAMERA MONITOR RENDERING
+// ═══════════════════════════════════════════════════════
+function renderCameraFeed() {
+  if (!camerasOpen) return;
+  const ctx = camCtx;
+  const w = camCanvas.width, h = camCanvas.height;
+
+  // Dark background
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, w, h);
+
+  // Room representation (simple)
+  const roomColors = ['#1a1a2a', '#181828', '#141424', '#161626', '#121222', '#101020', '#0e0e1e'];
+  ctx.fillStyle = roomColors[currentCam] || '#111';
+  ctx.fillRect(20, 20, w - 40, h - 40);
+
+  // Grid lines (security cam look)
+  ctx.strokeStyle = 'rgba(78,230,160,0.08)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < w; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+  for (let y = 0; y < h; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+  // Room features (simple shapes)
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  if (currentCam === 0) { // Stage
+    ctx.fillRect(100, 100, 440, 200); // stage platform
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    ctx.fillRect(120, 60, 80, 40); // curtain
+    ctx.fillRect(440, 60, 80, 40);
+  } else if (currentCam === 1) { // Dining
+    for (let i = 0; i < 4; i++) { ctx.fillRect(80 + i * 140, 150, 60, 60); } // tables
+  } else if (currentCam === 2 || currentCam === 3) { // Halls
+    ctx.fillRect(250, 40, 140, h - 80); // hallway
+  }
+
+  // Draw animatronics on camera
+  animState.forEach((a, idx) => {
+    if (a.currentCam === currentCam && !a.atDoor) {
+      const x = 200 + idx * 120;
+      const y = 140;
+      ctx.font = '48px serif';
+      ctx.fillText(ANIMATRONICS[idx].emoji, x, y);
+      ctx.fillStyle = ANIMATRONICS[idx].color;
+      ctx.font = '10px sans-serif';
+      ctx.fillText(ANIMATRONICS[idx].name, x, y + 20);
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    }
+  });
+
+  // Static noise overlay
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 16) {
+    const noise = Math.random() * 20;
+    data[i] += noise;
+    data[i + 1] += noise;
+    data[i + 2] += noise;
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  // Timestamp
+  const now = new Date();
+  ctx.fillStyle = '#4ee6a0';
+  ctx.font = '10px monospace';
+  ctx.fillText(now.toLocaleTimeString() + '  ' + CAM_NAMES[currentCam], 30, h - 15);
+}
+
+// ═══════════════════════════════════════════════════════
+// UI HANDLERS
+// ═══════════════════════════════════════════════════════
+window.toggleDoor = function(side) {
+  if (power <= 0) return;
+  doorsClosed[side] = !doorsClosed[side];
+  const btn = document.getElementById('door-' + side);
+  btn.classList.toggle('closed', doorsClosed[side]);
+  btn.textContent = doorsClosed[side] ? 'CLOSED' : 'DOOR';
+
+  // Update 3D door
+  if (side === 'left') leftDoor.visible = doorsClosed[side];
+  else rightDoor.visible = doorsClosed[side];
+};
+
+window.lightOn = function(side) {
+  if (power <= 0) return;
+  lightsOn[side] = true;
+  document.getElementById('light-' + side).classList.add('on');
+  if (side === 'left') leftHallLight.intensity = 2;
+  else rightHallLight.intensity = 2;
+};
+
+window.lightOff = function(side) {
+  lightsOn[side] = false;
+  document.getElementById('light-' + side).classList.remove('on');
+  if (side === 'left') leftHallLight.intensity = 0;
+  else rightHallLight.intensity = 0;
+};
+
+window.toggleCameras = function() {
+  if (power <= 0 && !camerasOpen) return;
+  camerasOpen = !camerasOpen;
+  document.getElementById('cam-overlay').classList.toggle('open', camerasOpen);
+};
+
+window.switchCam = function(idx, btn) {
+  currentCam = idx;
+  document.getElementById('cam-name').textContent = 'CAM ' + CAM_NAMES[idx];
+  document.querySelectorAll('.cam-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+};
+
+// Keyboard
+window.addEventListener('keydown', e => {
+  if (e.code === 'Escape' && camerasOpen) toggleCameras();
+  if (e.code === 'KeyA' || e.code === 'ArrowLeft') lookAngle = Math.max(-maxLook, lookAngle - 0.1);
+  if (e.code === 'KeyD' || e.code === 'ArrowRight') lookAngle = Math.min(maxLook, lookAngle + 0.1);
+});
+
+// Mouse look in office
+canvas.addEventListener('mousemove', e => {
+  if (camerasOpen || gameOver || won) return;
+  const norm = (e.clientX / window.innerWidth) * 2 - 1;
+  lookAngle = norm * maxLook;
+});
+
+// ═══════════════════════════════════════════════════════
+// GAME LOOP
+// ═══════════════════════════════════════════════════════
+const clock = new THREE.Clock();
+
+function loop() {
+  requestAnimationFrame(loop);
+  const dt = Math.min(clock.getDelta(), 0.1);
+
+  if (!started || gameOver || won) {
+    renderer.render(scene, camera);
+    return;
+  }
+
+  // Update game systems
+  updateTime(dt);
+  updatePower(dt);
+  updateAnimatronics(dt);
+
+  // Office look
+  camera.rotation.y = THREE.MathUtils.lerp(camera.rotation.y, -lookAngle, 8 * dt);
+
+  // Fan rotation
+  fanBlade.rotation.y += dt * 8;
+
+  // Desk lamp flicker
+  if (power > 0) {
+    deskLamp.intensity = 0.7 + Math.sin(Date.now() * 0.01) * 0.1;
+  }
+
+  // Render camera feed if open
+  if (camerasOpen) renderCameraFeed();
+
+  renderer.render(scene, camera);
+}
+
+clock.start();
+loop();
+
+// ═══════════════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════════════
+document.getElementById('playBtn').addEventListener('click', () => {
+  started = true;
+  document.getElementById('splash').classList.add('hidden');
+});
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>

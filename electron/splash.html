@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700&display=swap');
+
+  body {
+    width: 480px; height: 360px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #1a0a2e 0%, #0d1b3e 50%, #0a2a1e 100%);
+    border-radius: 20px;
+    overflow: hidden;
+    -webkit-app-region: drag;
+    user-select: none;
+    font-family: 'Nunito', sans-serif;
+  }
+
+  .logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: 48px;
+    background: linear-gradient(135deg, #5ff59a, #4dc8ff, #ff6bda);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: float 3s ease-in-out infinite;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 2px;
+    margin-bottom: 40px;
+  }
+
+  .loading-bar-track {
+    width: 200px; height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .loading-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #5ff59a, #4dc8ff);
+    border-radius: 2px;
+    animation: load 2s ease-in-out forwards;
+  }
+
+  .loading-text {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1px;
+  }
+
+  .version {
+    position: absolute;
+    bottom: 16px; right: 20px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 1px;
+  }
+
+  /* Stars background */
+  .stars {
+    position: absolute; inset: 0;
+    overflow: hidden; pointer-events: none;
+  }
+  .star {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: white; border-radius: 50%;
+    animation: twinkle 2s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes load {
+    0% { width: 0%; }
+    30% { width: 40%; }
+    60% { width: 70%; }
+    90% { width: 90%; }
+    100% { width: 100%; }
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.8; }
+  }
+</style>
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+  <div class="logo">NovaStar</div>
+  <div class="subtitle">ENGINE</div>
+  <div class="loading-bar-track">
+    <div class="loading-bar-fill"></div>
+  </div>
+  <div class="loading-text">Loading engine...</div>
+  <div class="version">v0.4.0</div>
+
+  <script>
+    // Generate random stars
+    const container = document.getElementById('stars');
+    for (let i = 0; i < 30; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDelay = Math.random() * 2 + 's';
+      star.style.opacity = Math.random() * 0.4 + 0.1;
+      container.appendChild(star);
+    }
+
+    // Animate loading text
+    const msgs = ['Loading engine...', 'Initializing renderer...', 'Loading shaders...', 'Preparing editor...', 'Almost ready...'];
+    const textEl = document.querySelector('.loading-text');
+    let i = 0;
+    setInterval(() => {
+      i = (i + 1) % msgs.length;
+      textEl.textContent = msgs[i];
+    }, 500);
+  </script>
+</body>
+</html>
